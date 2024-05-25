@@ -1,0 +1,134 @@
+<Window
+    Icon="/Assets/avalonia-logo.ico"
+    Title="ProjectX"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="ProjectX.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:ProjectX.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- <Grid> -->
+    <!--     <Image Source="{Binding ImageWindow.ImageFromBinding}" Stretch="Fill" /> -->
+    <!--  <Canvas  -->
+    <!--  Background="Transparent"  -->
+    <!--  PointerMoved="Canvas_PointerMoved"  -->
+    <!--  PointerPressed="Canvas_PointerPressed"  -->
+    <!--  PointerReleased="Canvas_PointerReleased">  -->
+    <!--    -->
+    <!--  <Path  -->
+    <!--  Data="{Binding PathModel.Data}"  -->
+    <!--  Fill="{x:Static Brushes.Black}"  -->
+    <!--  HorizontalAlignment="Stretch"  -->
+    <!--  Opacity="0.5"  -->
+    <!--  VerticalAlignment="Stretch" />  -->
+    <!--         <StackPanel Orientation="Vertical" Spacing="5"> -->
+    <!--             <TextBlock Foreground="Beige" Text="{Binding SizeWindow.WindowPosition}" /> -->
+    <!--             <TextBlock Foreground="Beige"> -->
+    <!--                 <Run Text="{Binding SizeWindow.Width}" /> -->
+    <!--                 <Run Text="{Binding SizeWindow.Height}" /> -->
+    <!--             </TextBlock> -->
+    <!--             <TextBlock Foreground="Beige" Text="{Binding ResultsModel.Results}" /> -->
+    <!--         </StackPanel> -->
+    <!--  <Rectangle  -->
+    <!--  Canvas.Left="{Binding RectangleModel.Left}"  -->
+    <!--  Canvas.Top="{Binding RectangleModel.Top}"  -->
+    <!--  Height="{Binding RectangleModel.Height}"  -->
+    <!--  HorizontalAlignment="Stretch"  -->
+    <!--  Stroke="Red"  -->
+    <!--  StrokeDashArray="4"  -->
+    <!--  StrokeThickness="2"  -->
+    <!--  VerticalAlignment="Stretch"  -->
+    <!--  Width="{Binding RectangleModel.Width}" />  -->
+    <!--     </Canvas> -->
+    <!-- </Grid> -->
+
+
+    <Grid>
+        <Image Source="{Binding ImageWindow.ImageFromBinding}" Stretch="Fill" />
+        <Canvas
+            Background="Transparent"
+            PointerMoved="Canvas_PointerMoved"
+            PointerPressed="Canvas_PointerPressed"
+            PointerReleased="Canvas_PointerReleased">
+
+            <Path
+                Data="{Binding PathModel.Data}"
+                Fill="{x:Static Brushes.Black}"
+                Opacity="0.5" />
+
+            <StackPanel Orientation="Vertical" Spacing="5">
+                <TextBlock Foreground="Beige" Text="{Binding SizeWindow.WindowPosition}" />
+                <TextBlock Foreground="Beige">
+                    <Run Text="{Binding SizeWindow.Width}" />
+                    <Run Text="{Binding SizeWindow.Height}" />
+                </TextBlock>
+                <TextBlock Foreground="Beige" Text="{Binding ResultsModel.Results}" />
+            </StackPanel>
+
+            <Grid
+                Canvas.Left="{Binding RectangleModel.Left}"
+                Canvas.Top="{Binding RectangleModel.Top}"
+                ColumnDefinitions="1*, Auto, Auto"
+                HorizontalAlignment="Stretch"
+                RowDefinitions="1*, 5, Auto"
+                VerticalAlignment="Stretch">
+
+                <Rectangle
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    Height="{Binding RectangleModel.Height}"
+                    HorizontalAlignment="Left"
+                    Stroke="Red"
+                    StrokeDashArray="4"
+                    StrokeThickness="2"
+                    VerticalAlignment="Top"
+                    Width="{Binding RectangleModel.Width}" />
+
+                <Grid
+                    ClipToBounds="False"
+                    ColumnDefinitions=" 1*, Auto, 1*, Auto"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Grid.Row="2"
+                    IsVisible="{Binding RectangleModel.HasNonZeroDimensions}">
+                    <Border
+                        Background="BurlyWood"
+                        CornerRadius="6"
+                        Grid.Column="1"
+                        HorizontalAlignment="Center">
+                        <TextBlock
+                            Foreground="Black"
+                            Padding="8"
+                            Text="{Binding ResultsModel.Results}" />
+                    </Border>
+                    <StackPanel
+                        Background="White"
+                        ClipToBounds="False"
+                        Grid.Column="3"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            Command="{Binding ShowTextCommand}"
+                            Height="30"
+                            Padding="6"
+                            Width="30">
+                            <Image Source="/Assets/image.png" />
+                        </Button>
+                        <Button
+                            Command="{Binding ShowTextCommand}"
+                            Height="30"
+                            Padding="6"
+                            Width="30">
+                            <Image Source="/Assets/close-cross.png" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Canvas>
+    </Grid>
+</Window>
