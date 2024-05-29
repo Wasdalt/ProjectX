@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using ProjectX.Models;
 
 namespace ProjectX.Views;
@@ -18,12 +20,11 @@ public interface IScreenshotService<T>
 
 public abstract class ScreenshotService : IScreenshotService<double>
 {
-    protected readonly List<string> TemporaryImagePaths = new();
     protected readonly ScreenshotCropper Cropper;
 
     protected ScreenshotService()
     {
-        Cropper = new ScreenshotCropper(TemporaryImagePaths);
+        Cropper = new ScreenshotCropper();
     }
 
     public abstract string CaptureScreenshot(params double[] args);
@@ -35,31 +36,32 @@ public abstract class ScreenshotService : IScreenshotService<double>
 
     public void CleanupTemporaryImages()
     {
-        foreach (var path in TemporaryImagePaths)
+        var temporaryImagePaths = TemporaryImageManager.Instance.TemporaryImagePaths
+            .Where(File.Exists)
+            .ToList();
+
+        foreach (var path in temporaryImagePaths)
         {
-            if (File.Exists(path))
+            try
             {
-                try
-                {
-                    File.Delete(path);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to delete temporary file {path}: {ex.Message}");
-                }
+                File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to delete temporary file {path}: {ex.Message}");
             }
         }
-        TemporaryImagePaths.Clear();
+
+        TemporaryImageManager.Instance.Clear();
     }
 
     protected string GetScreenshotPath()
     {
-        string path = Path.Combine(ProjectPathProvider.AssetsDirectory, "screenshot.png");
-        TemporaryImagePaths.Add(path);
+        string path = ProjectPathProvider.ImagePattern;
+        TemporaryImageManager.Instance.Add(path);
         return path;
     }
 }
-
 
 public class WindowsScreenshotService : ScreenshotService
 {
@@ -91,45 +93,43 @@ public class WindowsScreenshotService : ScreenshotService
     }
 }
 
-
-
 public class GnomeWaylandScreenshotService : ScreenshotService
 {
     public override string CaptureScreenshot(params double[] args)
     {
         string outputPath = GetScreenshotPath();
 
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = Path.Combine(ProjectPathProvider.CurrentDirectory, "GG", ".venv", "bin", "python3"),
-            Arguments = $"{Path.Combine(ProjectPathProvider.CurrentDirectory, "GG", "main2.py")} \"{outputPath}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            WorkingDirectory = Path.Combine(ProjectPathProvider.CurrentDirectory, "GG"),
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
         try
         {
-            using (var pythonProcess = new Process())
+            var startInfo = new ProcessStartInfo
             {
-                pythonProcess.StartInfo = startInfo;
-                pythonProcess.Start();
-                pythonProcess.WaitForExit();
+                FileName = "gnome-screenshot",
+                Arguments = $"-f \"{outputPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                if (pythonProcess.ExitCode != 0)
+            using (var process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
                 {
-                    throw new InvalidOperationException("Error creating screenshot.");
+                    string errorOutput = process.StandardError.ReadToEnd();
+                    throw new InvalidOperationException($"Error creating screenshot: {errorOutput}");
                 }
 
                 if (!File.Exists(outputPath))
                 {
                     throw new InvalidOperationException($"Screenshot file not found at path: {outputPath}");
                 }
-
-                return outputPath;
             }
+
+            return outputPath;
         }
         catch (Exception ex)
         {
@@ -138,14 +138,15 @@ public class GnomeWaylandScreenshotService : ScreenshotService
     }
 }
 
-
-
 public class MacScreenshotService : ScreenshotService
 {
     public override string CaptureScreenshot(params double[] args)
     {
         // Mac-specific screenshot creation implementation
         //...
+
+        // For demonstration, we'll just simulate a delay as if we were taking a screenshot.
+
         return GetScreenshotPath();
     }
 }

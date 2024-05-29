@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Avalonia.Input;
-using Avalonia.Media.Imaging;
 using ProjectX.ViewModels;
 using ProjectX.Views;
 
@@ -12,17 +11,23 @@ public class PointerEventHandler<T> : IPointerEventHandler where T : MainWindowV
 {
     private readonly T _currentViewModel;
     private readonly List<T> _allViewModels;
-    // private readonly IScreenshotService<double> _screenshotService;
 
     public PointerEventHandler(T currentViewModel, List<T>? allViewModels = null)
     {
         _currentViewModel = currentViewModel;
         _allViewModels = allViewModels ?? new List<T>();
-        // _screenshotService = ServiceLocator.GetService<IScreenshotService<double>>();
     }
 
     public void HandlePointerPressed(PointerPressedEventArgs args)
     {
+        // Получение текущей позиции указателя
+        var point = args.GetCurrentPoint(null);
+        // Проверяем, находится ли курсор над элементом Path
+        if (!(args.Source is Avalonia.Controls.Shapes.Path || point.Properties.IsRightButtonPressed))
+        {
+            return;
+        }
+
         foreach (var viewModel in _allViewModels)
         {
             if (viewModel != _currentViewModel)
@@ -37,6 +42,13 @@ public class PointerEventHandler<T> : IPointerEventHandler where T : MainWindowV
 
     public void HandlePointerMoved(PointerEventArgs args)
     {
+        // Получение текущей позиции указателя
+        var point = args.GetCurrentPoint(null);
+        // Проверяем, находится ли курсор над элементом Path
+        if (!(args.Source is Avalonia.Controls.Shapes.Path || point.Properties.IsRightButtonPressed))
+        {
+            return;
+        }
         _currentViewModel.PointerModel.CurrentPosition = _currentViewModel.ValidatePosition(args.GetCurrentPoint(null).Position);
 
         if (args.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
@@ -44,8 +56,8 @@ public class PointerEventHandler<T> : IPointerEventHandler where T : MainWindowV
             double width = Math.Abs(_currentViewModel.PointerModel.CurrentPosition.X - _currentViewModel.PointerModel.StartPosition.X);
             double height = Math.Abs(_currentViewModel.PointerModel.CurrentPosition.Y - _currentViewModel.PointerModel.StartPosition.Y);
 
-            _currentViewModel.ResultsModel.Results =
-                $"Start: ({_currentViewModel.PointerModel.StartPosition.X}, {_currentViewModel.PointerModel.StartPosition.Y}), Width: {width}, Height: {height}";
+            // _currentViewModel.ResultsModel.Results =
+            //     $"Start: ({_currentViewModel.PointerModel.StartPosition.X}, {_currentViewModel.PointerModel.StartPosition.Y}), Width: {width}, Height: {height}";
             _currentViewModel.RectangleModel.Width = width;
             _currentViewModel.RectangleModel.Height = height;
             _currentViewModel.RectangleModel.Left = Math.Min(_currentViewModel.PointerModel.StartPosition.X, _currentViewModel.PointerModel.CurrentPosition.X);
@@ -57,8 +69,15 @@ public class PointerEventHandler<T> : IPointerEventHandler where T : MainWindowV
 
     public void HandlePointerReleased(PointerReleasedEventArgs args)
     {
-        _currentViewModel.ResultsModel.Results =
-            $"Start: ({_currentViewModel.PointerModel.StartPosition.X}, {_currentViewModel.PointerModel.StartPosition.Y}), Width: {_currentViewModel.RectangleModel.Width}, Height: {_currentViewModel.RectangleModel.Height}";
+        // Получение текущей позиции указателя
+        var point = args.GetCurrentPoint(null);
+        // Проверяем, находится ли курсор над элементом Path
+        if (!(args.Source is Avalonia.Controls.Shapes.Path || point.Properties.IsRightButtonPressed))
+        {
+            return;
+        }
+        // _currentViewModel.ResultsModel.Results =
+        //     $"Start: ({_currentViewModel.PointerModel.StartPosition.X}, {_currentViewModel.PointerModel.StartPosition.Y}), Width: {_currentViewModel.RectangleModel.Width}, Height: {_currentViewModel.RectangleModel.Height}";
         
         int startX = (int)_currentViewModel.RectangleModel.Left;
         int startY = (int)_currentViewModel.RectangleModel.Top;
@@ -74,6 +93,7 @@ public class PointerEventHandler<T> : IPointerEventHandler where T : MainWindowV
         if (!string.IsNullOrEmpty(croppedImageName))
         {
             // _currentViewModel.CroppedImageName = croppedImageName;
+            SharedDataService.Data = croppedImagePath;
         }
     }
 }

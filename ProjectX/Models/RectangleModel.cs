@@ -3,7 +3,7 @@ using ReactiveUI;
 
 namespace ProjectX.Models
 {
-    public class RectangleModel : ViewModelBase
+    public class RectangleModel(ResultsModel resultsModel) : ViewModelBase
     {
         private double _left;
         private double _top;
@@ -17,6 +17,7 @@ namespace ProjectX.Models
             {
                 this.RaiseAndSetIfChanged(ref _left, value);
                 this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
+                UpdateResults();
             }
         }
 
@@ -27,6 +28,7 @@ namespace ProjectX.Models
             {
                 this.RaiseAndSetIfChanged(ref _top, value);
                 this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
+                UpdateResults();
             }
         }
 
@@ -37,6 +39,7 @@ namespace ProjectX.Models
             {
                 this.RaiseAndSetIfChanged(ref _width, value);
                 this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
+                UpdateResults();
             }
         }
 
@@ -47,10 +50,15 @@ namespace ProjectX.Models
             {
                 this.RaiseAndSetIfChanged(ref _height, value);
                 this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
+                UpdateResults();
             }
         }
 
         public bool HasNonZeroDimensions => _width > 0 && _height > 0;
-    }
 
+        private void UpdateResults()
+        {
+            resultsModel.Results = $"({Left}, {Top}), {Width}x{Height}";
+        }
+    }
 }

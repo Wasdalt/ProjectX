@@ -6,6 +6,7 @@ public static class ProjectPathProvider
 {
     private static readonly string _currentDirectory;
     private static readonly string _assetsDirectory;
+    private static readonly string _imagePattern;
 
     static ProjectPathProvider()
     {
@@ -18,8 +19,12 @@ public static class ProjectPathProvider
         {
             Directory.CreateDirectory(_assetsDirectory);
         }
+
+        // Путь к шаблону изображений
+        _imagePattern = Path.Combine(_assetsDirectory, "screenshot.png");
     }
 
+    public static string ImagePattern => _imagePattern;
     public static string CurrentDirectory => _currentDirectory;
     public static string AssetsDirectory => _assetsDirectory;
 }

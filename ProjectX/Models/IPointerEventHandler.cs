@@ -1,6 +1,6 @@
 using Avalonia.Input;
 
-namespace ProjectX.ViewModels;
+namespace ProjectX.Models;
 
 public interface IPointerEventHandler
 {

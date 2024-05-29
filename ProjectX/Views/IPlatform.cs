@@ -15,24 +15,22 @@ namespace ProjectX.Views;
 
 public interface IPlatform
 {
-    List<Window> CreateWindows();
-    void Cleanup();
+    List<Window> CreateWindowsAsync();
+    void CleanupAsync();
 }
 
 public class WindowsPlatform : IPlatform
 {
     private MainWindowViewModel? _viewModel;
-    private readonly Lazy<IScreenshotService<double>> _screenshotService;
+    private readonly IScreenshotService<double> _screenshotService;
 
     public WindowsPlatform()
     {
-        _screenshotService = new Lazy<IScreenshotService<double>>(() => new WindowsScreenshotService());
+        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
     }
 
-    public List<Window> CreateWindows()
+    public List<Window> CreateWindowsAsync()
     {
-        RegisterServices();
-
         var allScreens = ScreenManager.Instance.GetAllScreens();
         var mainScreen = allScreens.FirstOrDefault(s => s.Bounds.X <= 0 && s.Bounds.Y <= 0);
         if (mainScreen == null)
@@ -47,7 +45,7 @@ public class WindowsPlatform : IPlatform
         }
 
         _viewModel = new MainWindowViewModel();
-        var screenshotPath = _screenshotService.Value.CaptureScreenshot(
+        var screenshotPath = _screenshotService.CaptureScreenshot(
             combinedBounds.X,
             combinedBounds.Y,
             combinedBounds.Width,
@@ -71,32 +69,25 @@ public class WindowsPlatform : IPlatform
         return new List<Window> { window };
     }
 
-    private void RegisterServices()
+    public void CleanupAsync()
     {
-        ServiceLocator.RegisterService(_screenshotService.Value);
-    }
-
-    public void Cleanup()
-    {
-        _screenshotService.Value.CleanupTemporaryImages();
+        _screenshotService.CleanupTemporaryImages();
     }
 }
 
-// LinuxPlatform.cs
 public class LinuxPlatform : IPlatform
 {
     private readonly List<MainWindowViewModel> _viewModels = new();
-    private readonly Lazy<IScreenshotService<double>> _screenshotService;
+    private readonly IScreenshotService<double> _screenshotService;
 
-    public LinuxPlatform(IScreenshotService<double> screenshotService)
+    public LinuxPlatform()
     {
-        _screenshotService = new Lazy<IScreenshotService<double>>(() => screenshotService);
+        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
     }
 
-    public List<Window> CreateWindows()
+    public List<Window> CreateWindowsAsync()
     {
-        RegisterServices();
-        _screenshotService.Value.CaptureScreenshot();
+        _screenshotService.CaptureScreenshot();
 
         var windows = new List<Window>();
         var allScreens = ScreenManager.Instance.GetAllScreens();
@@ -112,9 +103,10 @@ public class LinuxPlatform : IPlatform
                 Width = screen.Bounds.Width,
                 Height = screen.Bounds.Height,
                 Position = screen.Bounds.Position,
+                // WindowState = WindowState.FullScreen
             };
 
-            var pathimage = _screenshotService.Value.CropScreenshot(screen.Bounds.X,
+            var pathimage = _screenshotService.CropScreenshot(screen.Bounds.X,
                 screen.Bounds.Y,
                 screen.Bounds.Width, screen.Bounds.Height);
             viewModel.ImageWindow.ImageFromBinding = new Bitmap(pathimage);
@@ -136,42 +128,30 @@ public class LinuxPlatform : IPlatform
         return windows;
     }
 
-    private void RegisterServices()
+    public void CleanupAsync()
     {
-        ServiceLocator.RegisterService(_screenshotService.Value);
-    }
-
-    public void Cleanup()
-    {
-        _screenshotService.Value.CleanupTemporaryImages();
+        _screenshotService.CleanupTemporaryImages();
     }
 }
 
-// MacPlatform.cs
 public class MacPlatform : IPlatform
 {
-    private readonly Lazy<IScreenshotService<double>> _screenshotService;
+    private readonly IScreenshotService<double> _screenshotService;
 
     public MacPlatform()
     {
-        _screenshotService = new Lazy<IScreenshotService<double>>(() => new MacScreenshotService());
+        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
     }
 
-    public List<Window> CreateWindows()
+    public List<Window> CreateWindowsAsync()
     {
-        RegisterServices();
         // Implement Mac-specific behavior
         throw new NotImplementedException();
     }
 
-    public void Cleanup()
+    public void CleanupAsync()
     {
-        _screenshotService.Value.CleanupTemporaryImages();
-    }
-
-    private void RegisterServices()
-    {
-        ServiceLocator.RegisterService(_screenshotService.Value);
+        _screenshotService.CleanupTemporaryImages();
     }
 }
 
@@ -188,6 +168,7 @@ public static class PlatformFactory
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
+            ServiceLocator.Register<IScreenshotService<double>>(new WindowsScreenshotService());
             return new WindowsPlatform();
         }
 
@@ -196,12 +177,14 @@ public static class PlatformFactory
             var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY");
             if (waylandDisplay != null && IsGnome())
             {
-                return new LinuxPlatform(new GnomeWaylandScreenshotService());
+                ServiceLocator.Register<IScreenshotService<double>>(new GnomeWaylandScreenshotService());
+                return new LinuxPlatform();
             }
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
+            ServiceLocator.Register<IScreenshotService<double>>(new MacScreenshotService());
             return new MacPlatform();
         }
 

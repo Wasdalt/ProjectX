@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Markup.Xaml;
 using ProjectX.Views;
@@ -24,11 +25,11 @@ public class App : Application
         if (!_mutexCreated)
         {
             // Программа уже запущена
-            Environment.Exit(0);
+            ServiceLocator.ShutdownService.Shutdown();
         }
 
         _platform = PlatformFactory.CreatePlatform();
-        var windows = _platform.CreateWindows();
+        var windows = _platform.CreateWindowsAsync();
 
         foreach (var window in windows)
         {
@@ -51,7 +52,7 @@ public class App : Application
 
     private void Cleanup()
     {
-        _platform?.Cleanup();
+        _platform.CleanupAsync();
         if (_mutexCreated && _mutex != null)
         {
             try
@@ -71,4 +72,4 @@ public class App : Application
             }
         }
     }
-}
+} 

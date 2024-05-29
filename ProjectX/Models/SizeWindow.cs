@@ -9,11 +9,11 @@ public class SizeWindow : ViewModelBase
 {
     private double _width;
     private double _height;
-    
+
     private PixelPoint _windowPosition;
     public double PreviousWidth { get; set; }
     public double PreviousHeight { get; set; }
-    
+
     public double Width
     {
         get => _width;
@@ -31,5 +31,4 @@ public class SizeWindow : ViewModelBase
         get => _windowPosition;
         set => this.RaiseAndSetIfChanged(ref _windowPosition, value);
     }
-
 }

@@ -1,21 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using ProjectX.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
 namespace ProjectX.Views;
-
 public class ScreenshotCropper
 {
-    private readonly List<string> _temporaryImagePaths;
-
-    public ScreenshotCropper(List<string> temporaryImagePaths)
-    {
-        _temporaryImagePaths = temporaryImagePaths;
-    }
-
     public string CropScreenshot(int startX, int startY, int width, int height)
     {
         string outputPath = Path.Combine(ProjectPathProvider.AssetsDirectory,
@@ -23,14 +14,14 @@ public class ScreenshotCropper
 
         try
         {
-            string inputPath = Path.Combine(ProjectPathProvider.AssetsDirectory, "screenshot.png");
+            string inputPath = ProjectPathProvider.ImagePattern;
 
             using (Image image = Image.Load(inputPath))
             {
                 Rectangle cropArea = new Rectangle(startX, startY, width, height);
                 image.Mutate(x => x.Crop(cropArea));
                 image.Save(outputPath);
-                _temporaryImagePaths.Add(outputPath); // Add to the list of temporary paths
+                TemporaryImageManager.Instance.Add(outputPath);
                 return outputPath;
             }
         }
@@ -46,8 +37,7 @@ public class ScreenshotCropperWindow
 {
     public static string CropScreenshotWindow(string imagepath, int startX, int startY, int width, int height)
     {
-        string outputPath = Path.Combine(ProjectPathProvider.AssetsDirectory,
-            "screenshot_cropped_window.png");
+        string outputPath = Path.Combine(ProjectPathProvider.AssetsDirectory, "screenshot_cropped_window.png");
 
         try
         {
@@ -58,7 +48,8 @@ public class ScreenshotCropperWindow
                 Rectangle cropArea = new Rectangle(startX, startY, width, height);
                 image.Mutate(x => x.Crop(cropArea));
                 image.Save(outputPath);
-                return Path.GetFileName(outputPath); // возвращаем имя файла
+                TemporaryImageManager.Instance.Add(outputPath);
+                return Path.GetFileName(outputPath);
             }
         }
         catch (Exception ex)
@@ -68,6 +59,8 @@ public class ScreenshotCropperWindow
         }
     }
 }
+
+
 
 // public Bitmap CropImage(Bitmap originalImage, int startX, int startY, int width, int height)
 // {
