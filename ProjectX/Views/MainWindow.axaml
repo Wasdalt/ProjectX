@@ -111,18 +111,25 @@
                         Grid.Column="4"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal"
-                        Spacing="2">
+                        Spacing="5">
+                        <Button
+                            Command="{Binding ShowOCRCommand}"
+                            Height="30"
+                            Padding="3"
+                            Width="30">
+                            <Image Source="/Assets/text-recognising.png" />
+                        </Button>
                         <Button
                             Command="{Binding ShowImageCommand}"
                             Height="30"
-                            Padding="6"
+                            Padding="3"
                             Width="30">
                             <Image Source="/Assets/image.png" />
                         </Button>
                         <Button
                             Command="{Binding CloseCommand}"
                             Height="30"
-                            Padding="6"
+                            Padding="5"
                             Width="30">
                             <Image Source="/Assets/close-cross.png" />
                         </Button>

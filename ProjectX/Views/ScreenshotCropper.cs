@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using ProjectX.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -7,7 +8,7 @@ using SixLabors.ImageSharp.Processing;
 namespace ProjectX.Views;
 public class ScreenshotCropper
 {
-    public string CropScreenshot(int startX, int startY, int width, int height)
+    public async Task<string> CropScreenshotAsync(int startX, int startY, int width, int height)
     {
         string outputPath = Path.Combine(ProjectPathProvider.AssetsDirectory,
             $"screenshot_cropped_{startX}_{startY}_{width}_{height}.png");
@@ -16,11 +17,11 @@ public class ScreenshotCropper
         {
             string inputPath = ProjectPathProvider.ImagePattern;
 
-            using (Image image = Image.Load(inputPath))
+            using (Image image = await Image.LoadAsync(inputPath))
             {
                 Rectangle cropArea = new Rectangle(startX, startY, width, height);
                 image.Mutate(x => x.Crop(cropArea));
-                image.Save(outputPath);
+                await image.SaveAsync(outputPath);
                 TemporaryImageManager.Instance.Add(outputPath);
                 return outputPath;
             }
@@ -28,10 +29,11 @@ public class ScreenshotCropper
         catch (Exception ex)
         {
             Console.WriteLine($"{ex.Message}");
-            return null!;
+            return null;
         }
     }
 }
+
 
 public class ScreenshotCropperWindow
 {
@@ -49,7 +51,7 @@ public class ScreenshotCropperWindow
                 image.Mutate(x => x.Crop(cropArea));
                 image.Save(outputPath);
                 TemporaryImageManager.Instance.Add(outputPath);
-                return Path.GetFileName(outputPath);
+                return outputPath;
             }
         }
         catch (Exception ex)

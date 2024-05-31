@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Markup.Xaml;
+using ProjectX.ViewModels.Page;
 using ProjectX.Views;
 
 namespace ProjectX;
@@ -27,18 +28,14 @@ public class App : Application
             // Программа уже запущена
             ServiceLocator.ShutdownService.Shutdown();
         }
-
+        ServiceLocator.Register<IPageFactory>(new PageFactory());
         _platform = PlatformFactory.CreatePlatform();
-        var windows = _platform.CreateWindowsAsync();
-
-        foreach (var window in windows)
-        {
-            window.Show();
-        }
+        _platform.CreateWindowsAsync(); // Windows are created and shown within this method
 
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         Console.CancelKeyPress += OnCancelKeyPress;
     }
+
 
     private void OnProcessExit(object? sender, EventArgs e)
     {

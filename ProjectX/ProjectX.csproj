@@ -23,4 +23,11 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.0-preview.3.24172.9" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="ViewModels\Page\RealizationSaveImage\SaveImagePage.axaml.cs">
+        <DependentUpon>SaveImage_Page.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
 </Project>

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Avalonia.Media.Imaging;
 using ProjectX.ViewModels;
 using ReactiveUI;

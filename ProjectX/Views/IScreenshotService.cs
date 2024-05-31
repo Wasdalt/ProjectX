@@ -31,8 +31,9 @@ public abstract class ScreenshotService : IScreenshotService<double>
 
     public string CropScreenshot(int startX, int startY, int width, int height)
     {
-        return Cropper.CropScreenshot(startX, startY, width, height);
+        return Task.Run(() => Cropper.CropScreenshotAsync(startX, startY, width, height)).Result;
     }
+
 
     public void CleanupTemporaryImages()
     {

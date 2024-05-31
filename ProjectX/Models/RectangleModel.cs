@@ -3,12 +3,18 @@ using ReactiveUI;
 
 namespace ProjectX.Models
 {
-    public class RectangleModel(ResultsModel resultsModel) : ViewModelBase
+    public class RectangleModel : ViewModelBase
     {
         private double _left;
         private double _top;
         private double _width;
         private double _height;
+        private readonly ResultsModel _resultsModel;
+
+        public RectangleModel(ResultsModel resultsModel)
+        {
+            _resultsModel = resultsModel;
+        }
 
         public double Left
         {
@@ -16,7 +22,6 @@ namespace ProjectX.Models
             set
             {
                 this.RaiseAndSetIfChanged(ref _left, value);
-                this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
                 UpdateResults();
             }
         }
@@ -27,7 +32,6 @@ namespace ProjectX.Models
             set
             {
                 this.RaiseAndSetIfChanged(ref _top, value);
-                this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
                 UpdateResults();
             }
         }
@@ -38,7 +42,6 @@ namespace ProjectX.Models
             set
             {
                 this.RaiseAndSetIfChanged(ref _width, value);
-                this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
                 UpdateResults();
             }
         }
@@ -49,16 +52,29 @@ namespace ProjectX.Models
             set
             {
                 this.RaiseAndSetIfChanged(ref _height, value);
-                this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
                 UpdateResults();
             }
         }
 
-        public bool HasNonZeroDimensions => _width > 0 && _height > 0;
+        public bool HasNonZeroDimensions => Width > 0 && Height > 0;
 
         private void UpdateResults()
         {
-            resultsModel.Results = $"({Left}, {Top}), {Width}x{Height}";
+            _resultsModel.Results = $"({Left}, {Top}), {Width}x{Height}";
+            this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
+        }
+
+        public void Reset()
+        {
+            Left = Top = Width = Height = 0;
+        }
+
+        public void UpdateSizeAndPosition(double previousWidth, double previousHeight, double newWidth, double newHeight)
+        {
+            Left = Left / previousWidth * newWidth;
+            Top = Top / previousHeight * newHeight;
+            Width = Width / previousWidth * newWidth;
+            Height = Height / previousHeight * newHeight;
         }
     }
 }

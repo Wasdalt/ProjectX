@@ -6,8 +6,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using DynamicData;
 using ProjectX.Models;
 using ProjectX.Models.Screen;
+using ProjectX.Models.SelectionToolCropping;
 using ProjectX.ViewModels;
 
 
@@ -45,13 +47,6 @@ public class WindowsPlatform : IPlatform
         }
 
         _viewModel = new MainWindowViewModel();
-        var screenshotPath = _screenshotService.CaptureScreenshot(
-            combinedBounds.X,
-            combinedBounds.Y,
-            combinedBounds.Width,
-            combinedBounds.Height
-        );
-
         var window = new MainWindow
         {
             DataContext = _viewModel,
@@ -65,8 +60,21 @@ public class WindowsPlatform : IPlatform
             ExtendClientAreaChromeHints = ExtendClientAreaChromeHints.NoChrome
         };
 
+        // Capture screenshot after ensuring windows are ready
+        var screenshotPath = _screenshotService.CaptureScreenshot(
+            combinedBounds.X,
+            combinedBounds.Y,
+            combinedBounds.Width,
+            combinedBounds.Height
+        );
+
         _viewModel.ImageWindow.ImageFromBinding = new Bitmap(screenshotPath);
-        return new List<Window> { window };
+
+        // Show the window
+        window.Show();
+
+        // No need to return windows list since only one window is created
+        return null;
     }
 
     public void CleanupAsync()
@@ -74,6 +82,8 @@ public class WindowsPlatform : IPlatform
         _screenshotService.CleanupTemporaryImages();
     }
 }
+
+
 
 public class LinuxPlatform : IPlatform
 {
@@ -87,30 +97,24 @@ public class LinuxPlatform : IPlatform
 
     public List<Window> CreateWindowsAsync()
     {
-        _screenshotService.CaptureScreenshot();
-
         var windows = new List<Window>();
         var allScreens = ScreenManager.Instance.GetAllScreens();
+
+        // Capture main screenshot after ensuring windows are created but not shown yet
+        _screenshotService.CaptureScreenshot();
 
         foreach (var screen in allScreens)
         {
             var viewModel = new MainWindowViewModel();
             _viewModels.Add(viewModel);
 
-            var window = new MainWindow
-            {
-                DataContext = viewModel,
-                Width = screen.Bounds.Width,
-                Height = screen.Bounds.Height,
-                Position = screen.Bounds.Position,
-                // WindowState = WindowState.FullScreen
-            };
+            var window = CreateWindow(viewModel);
+            window.Width = screen.Bounds.Width;
+            window.Height = screen.Bounds.Height;
+            window.Position = screen.Bounds.Position;
+            window.WindowState = WindowState.FullScreen;
 
-            var pathimage = _screenshotService.CropScreenshot(screen.Bounds.X,
-                screen.Bounds.Y,
-                screen.Bounds.Width, screen.Bounds.Height);
-            viewModel.ImageWindow.ImageFromBinding = new Bitmap(pathimage);
-            viewModel.ImageWindow.ImageFromBindingPath = pathimage;
+            windows.Add(window);
 
             viewModel.PointerEventHandler = new PointerEventHandler<MainWindowViewModel>(viewModel, _viewModels);
 
@@ -121,39 +125,68 @@ public class LinuxPlatform : IPlatform
                     w.Close();
                 }
             };
-
-            windows.Add(window);
         }
 
-        return windows;
+        // Crop individual screenshots after main screenshot is captured
+        foreach (var screen in allScreens)
+        {
+            var pathimage = _screenshotService.CropScreenshot(screen.Bounds.X,
+                screen.Bounds.Y,
+                screen.Bounds.Width, screen.Bounds.Height);
+
+            // Assign the cropped screenshot path to ViewModel
+            _viewModels[allScreens.IndexOf(screen)].ImageWindow.ImageFromBinding = new Bitmap(pathimage);
+            _viewModels[allScreens.IndexOf(screen)].ImageWindow.ImageFromBindingPath = pathimage;
+        }
+
+        // Now show the windows
+        foreach (var win in windows)
+        {
+            win.Show();
+        }
+
+        // No need to return windows list since it's already used above
+        return null;
     }
+
 
     public void CleanupAsync()
     {
         _screenshotService.CleanupTemporaryImages();
     }
-}
 
-public class MacPlatform : IPlatform
-{
-    private readonly IScreenshotService<double> _screenshotService;
-
-    public MacPlatform()
+    public Window CreateWindow<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
     {
-        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
-    }
-
-    public List<Window> CreateWindowsAsync()
-    {
-        // Implement Mac-specific behavior
-        throw new NotImplementedException();
-    }
-
-    public void CleanupAsync()
-    {
-        _screenshotService.CleanupTemporaryImages();
+        var window = new MainWindow
+        {
+            DataContext = viewModel
+        };
+        return window;
     }
 }
+
+
+
+// public class MacPlatform : IPlatform
+// {
+//     private readonly IScreenshotService<double> _screenshotService;
+//
+//     public MacPlatform()
+//     {
+//         _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
+//     }
+//
+//     public List<Window> CreateWindowsAsync()
+//     {
+//         // Implement Mac-specific behavior
+//         throw new NotImplementedException();
+//     }
+//
+//     public void CleanupAsync()
+//     {
+//         _screenshotService.CleanupTemporaryImages();
+//     }
+// }
 
 public static class PlatformFactory
 {
@@ -182,11 +215,11 @@ public static class PlatformFactory
             }
         }
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            ServiceLocator.Register<IScreenshotService<double>>(new MacScreenshotService());
-            return new MacPlatform();
-        }
+        // if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        // {
+        //     ServiceLocator.Register<IScreenshotService<double>>(new MacScreenshotService());
+        //     return new MacPlatform();
+        // }
 
         throw new PlatformNotSupportedException("Unsupported platform or environment.");
     }

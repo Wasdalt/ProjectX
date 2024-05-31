@@ -1,20 +1,18 @@
-using System;
-using Avalonia;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
+using Avalonia.ReactiveUI;
 using ProjectX.ViewModels;
+using ProjectX.ViewModels.Page;
 using ReactiveUI;
 
 namespace ProjectX.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow :  ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
         InitializeComponent();
-        var dialogService = new DialogService(this);
-        MainWindowViewModel.Initialize(dialogService);
         DataContextChanged += (s, e) =>
         {
             if (DataContext is MainWindowViewModel viewModel)
@@ -22,29 +20,34 @@ public partial class MainWindow : Window
                 viewModel.SubscribeToEvents(this);
             }
         };
+        this.WhenActivated(d =>
+        {
+            d(ViewModel!.ShowDialogForSecondWindow.RegisterHandler(DoShowDialogAsync<SecondWindow, SecondWindowViewModel>));
+            // d(ViewModel!.ShowDialogForNewWindow.RegisterHandler(DoShowDialogAsync<NewWindow, NewWindowViewModel>));
+        });
+    }
+    private async Task DoShowDialogAsync<TWindow, TViewModel>(InteractionContext<TViewModel, bool> interaction)
+        where TWindow : Window, new()
+        where TViewModel : ViewModelBase
+    {
+        var dialog = new TWindow();
+        dialog.DataContext = interaction.Input;
+        var result = await dialog.ShowDialog<bool>(this);
+        interaction.SetOutput(result);
     }
 
     private void Canvas_PointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.PointerPressedHandler(sender, e);
-        }
+        (DataContext as MainWindowViewModel)?.PointerPressedHandler(sender, e);
     }
 
     private void Canvas_PointerMoved(object sender, PointerEventArgs e)
     {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.PointerMovedHandler(sender, e);
-        }
+        (DataContext as MainWindowViewModel)?.PointerMovedHandler(sender, e);
     }
 
     private void Canvas_PointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.PointerReleasedHandler(sender, e);
-        }
+        (DataContext as MainWindowViewModel)?.PointerReleasedHandler(sender, e);
     }
 }

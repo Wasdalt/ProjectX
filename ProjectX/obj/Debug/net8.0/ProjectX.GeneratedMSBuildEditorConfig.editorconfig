@@ -20,10 +20,10 @@ build_property.EnableGeneratedComInterfaceComImportInterop =
 [/home/nubuck/RiderProjects/ProjectX/ProjectX/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/ImagePage.axaml]
+[/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/RealizationOCR/OCRPage.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/TextPage.axaml]
+[/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/RealizationSaveImage/SaveImagePage.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [/home/nubuck/RiderProjects/ProjectX/ProjectX/Views/MainWindow.axaml]
