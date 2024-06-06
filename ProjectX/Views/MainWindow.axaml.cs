@@ -8,7 +8,7 @@ using ReactiveUI;
 
 namespace ProjectX.Views;
 
-public partial class MainWindow :  ReactiveWindow<MainWindowViewModel>
+public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
@@ -22,10 +22,12 @@ public partial class MainWindow :  ReactiveWindow<MainWindowViewModel>
         };
         this.WhenActivated(d =>
         {
-            d(ViewModel!.ShowDialogForSecondWindow.RegisterHandler(DoShowDialogAsync<SecondWindow, SecondWindowViewModel>));
+            d(ViewModel!.ShowDialogForSecondWindow.RegisterHandler(
+                DoShowDialogAsync<SecondWindow, SecondWindowViewModel>));
             // d(ViewModel!.ShowDialogForNewWindow.RegisterHandler(DoShowDialogAsync<NewWindow, NewWindowViewModel>));
         });
     }
+
     private async Task DoShowDialogAsync<TWindow, TViewModel>(InteractionContext<TViewModel, bool> interaction)
         where TWindow : Window, new()
         where TViewModel : ViewModelBase

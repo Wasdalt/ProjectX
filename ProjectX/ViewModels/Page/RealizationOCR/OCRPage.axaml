@@ -9,5 +9,134 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:page="clr-namespace:ProjectX.ViewModels.Page"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    Welcome to Avalonia!
+    <UserControl.Styles>
+        <!--  PointerOver State  -->
+
+        <!-- <Style Selector="TextBlock.qq"> -->
+        <!--     <Setter Property="Foreground" Value="Red" /> -->
+        <!-- </Style> -->
+        <!-- <Styles> -->
+        <!--     <Style Selector="Border:pointerover"> -->
+        <!--         <Setter Property="Background" Value="Red" /> -->
+        <!--     </Style> -->
+        <!--    -->
+        <!--     <Style Selector="Border:pressed"> -->
+        <!--         <Setter Property="Background" Value="Red" /> -->
+        <!--     </Style> -->
+        <!--     <Style Selector="Border"> -->
+        <!--         <Setter Property="Background" Value="Red" /> -->
+        <!--     </Style> -->
+        <!-- </Styles> -->
+        <!--  Default State  -->
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="TextBox:focused">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!--  Default State  -->
+        <Style Selector="TextBox.transparent">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!--  Hover State  -->
+        <Style Selector="TextBox.transparent:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!--  Focused State  -->
+        <Style Selector="TextBox.transparent:focused">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <!-- <Style Selector="Border:pointerover"> -->
+        <!--     <Setter Property="Background" Value="Red" /> -->
+        <!-- </Style> -->
+        <!--    -->
+        <!-- <Style Selector="Border:pressed"> -->
+        <!--     <Setter Property="Background" Value="Red" /> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="Border"> -->
+        <!--     <Setter Property="Background" Value="Red" /> -->
+        <!-- </Style> -->
+    </UserControl.Styles>
+    <Grid
+        Background="#171717"
+        ColumnDefinitions="20, 1*, 1*, 1*, 20"
+        RowDefinitions="20, 1*, 20, Auto, 20">
+
+        <Grid
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Grid.Row="1">
+
+            <Border
+                Background="#252526"
+                BorderBrush="#FF565656"
+                BorderThickness="3"
+                CornerRadius="3">
+                <TextBox
+                    FontSize="16"
+                    Text="{Binding ImageCropper.Text}"
+                    TextWrapping="Wrap">
+                    <TextBox.Styles>
+                        <Style Selector="Border:pointerover">
+                            <Setter Property="Background" Value="#252526" />
+                        </Style>
+
+                        <Style Selector="Border:pressed">
+                            <Setter Property="Background" Value="#252526" />
+                        </Style>
+                        <Style Selector="Border">
+                            <Setter Property="Background" Value="#252526" />
+                        </Style>
+                    </TextBox.Styles>
+                </TextBox>
+
+            </Border>
+
+        </Grid>
+
+        <StackPanel
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Grid.Row="3"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="10">
+            <!-- <TextBlock Classes="gg" Text="wefwe" /> -->
+            <!-- <TextBlock Classes="qq" Text="wefwe" /> -->
+            <Button
+                Background="#FF393939"
+                Command="{Binding CopyTextToClipboardCommand}"
+                Content="Копировать"
+                FontSize="16"
+                Foreground="#FFE8E8E8" />
+            <Button
+                Command="{Binding OpenSaveTextFileCommand}"
+                Content="Сохранить как..."
+                FontSize="16"
+                Foreground="#FFE8E8E8"
+                Theme="{StaticResource EllipseButton}" />
+            <Button
+                Background="#FF393939"
+                Command="{Binding SaveToMyDocumentsCommand}"
+                Content="Сохранить"
+                FontSize="16"
+                Foreground="#FFE8E8E8" />
+        </StackPanel>
+
+        <!--  Элемент для отображения состояния загрузки  -->
+        <TextBlock
+            FontSize="24"
+            Foreground="White"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            IsVisible="{Binding IsBusy}"
+            Text="Loading..."
+            VerticalAlignment="Center" />
+    </Grid>
 </UserControl>

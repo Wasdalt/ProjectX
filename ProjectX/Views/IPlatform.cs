@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using DynamicData;
@@ -11,6 +12,7 @@ using ProjectX.Models;
 using ProjectX.Models.Screen;
 using ProjectX.Models.SelectionToolCropping;
 using ProjectX.ViewModels;
+using ProjectX.ViewModels.Page;
 
 
 namespace ProjectX.Views;
@@ -21,20 +23,43 @@ public interface IPlatform
     void CleanupAsync();
 }
 
-public class WindowsPlatform : IPlatform
+public abstract class PlatformBase : IPlatform
 {
-    private MainWindowViewModel? _viewModel;
-    private readonly IScreenshotService<double> _screenshotService;
+    protected IScreenshotService<double> ScreenshotService;
+    protected List<MainWindowViewModel> ViewModels = new();
 
-    public WindowsPlatform()
+    protected PlatformBase()
     {
-        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
+        ScreenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
     }
 
-    public List<Window> CreateWindowsAsync()
+    public abstract List<Window> CreateWindowsAsync();
+
+    public virtual void CleanupAsync()
     {
+        ScreenshotService.CleanupTemporaryImages();
+    }
+
+    protected static void AddEscKeyCloseHandler(Window window)
+    {
+        window.KeyDown += (sender, e) =>
+        {
+            if (e.Key == Key.Escape)
+            {
+                window.Close();
+            }
+        };
+    }
+}
+
+public class WindowsPlatform : PlatformBase
+{
+    public override List<Window> CreateWindowsAsync()
+    {
+        var mainWindow = ScreenManager.Instance.MainWindow;
         var allScreens = ScreenManager.Instance.GetAllScreens();
         var mainScreen = allScreens.FirstOrDefault(s => s.Bounds.X <= 0 && s.Bounds.Y <= 0);
+
         if (mainScreen == null)
         {
             throw new InvalidOperationException("Main screen not found.");
@@ -46,67 +71,49 @@ public class WindowsPlatform : IPlatform
             combinedBounds = combinedBounds.Union(screen.Bounds);
         }
 
-        _viewModel = new MainWindowViewModel();
-        var window = new MainWindow
-        {
-            DataContext = _viewModel,
-            Width = combinedBounds.Width / mainScreen.PixelDensity,
-            Height = combinedBounds.Height / mainScreen.PixelDensity,
-            Position = new PixelPoint(combinedBounds.X, combinedBounds.Y),
-            Topmost = true,
-            ExtendClientAreaToDecorationsHint = true,
-            ExtendClientAreaTitleBarHeightHint = 0,
-            CanResize = false,
-            ExtendClientAreaChromeHints = ExtendClientAreaChromeHints.NoChrome
-        };
+        var viewModel = new MainWindowViewModel();
+        ViewModels.Add(viewModel);
+        mainWindow.DataContext = viewModel;
+        mainWindow.Width = combinedBounds.Width / mainScreen.PixelDensity;
+        mainWindow.Height = combinedBounds.Height / mainScreen.PixelDensity;
+        mainWindow.Position = new PixelPoint(combinedBounds.X, combinedBounds.Y);
+        mainWindow.Topmost = true;
+        mainWindow.ExtendClientAreaToDecorationsHint = true;
+        mainWindow.ExtendClientAreaTitleBarHeightHint = 0;
+        mainWindow.CanResize = false;
+        mainWindow.ExtendClientAreaChromeHints = ExtendClientAreaChromeHints.NoChrome;
 
-        // Capture screenshot after ensuring windows are ready
-        var screenshotPath = _screenshotService.CaptureScreenshot(
+        AddEscKeyCloseHandler(mainWindow);
+
+        var screenshotPath = ScreenshotService.CaptureScreenshot(
             combinedBounds.X,
             combinedBounds.Y,
             combinedBounds.Width,
             combinedBounds.Height
         );
 
-        _viewModel.ImageWindow.ImageFromBinding = new Bitmap(screenshotPath);
+        viewModel.ImageWindow.ImageFromBindingPath = screenshotPath; 
+        viewModel.ImageWindow.ImageFromBinding = new Bitmap(screenshotPath);
 
-        // Show the window
-        window.Show();
+        mainWindow.Show();
 
-        // No need to return windows list since only one window is created
-        return null;
-    }
-
-    public void CleanupAsync()
-    {
-        _screenshotService.CleanupTemporaryImages();
+        return new List<Window> { mainWindow };
     }
 }
 
-
-
-public class LinuxPlatform : IPlatform
+public class LinuxPlatform : PlatformBase
 {
-    private readonly List<MainWindowViewModel> _viewModels = new();
-    private readonly IScreenshotService<double> _screenshotService;
-
-    public LinuxPlatform()
+    public override List<Window> CreateWindowsAsync()
     {
-        _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
-    }
-
-    public List<Window> CreateWindowsAsync()
-    {
-        var windows = new List<Window>();
         var allScreens = ScreenManager.Instance.GetAllScreens();
+        var windows = new List<Window>();
 
-        // Capture main screenshot after ensuring windows are created but not shown yet
-        _screenshotService.CaptureScreenshot();
+        ScreenshotService.CaptureScreenshot();
 
         foreach (var screen in allScreens)
         {
             var viewModel = new MainWindowViewModel();
-            _viewModels.Add(viewModel);
+            ViewModels.Add(viewModel);
 
             var window = CreateWindow(viewModel);
             window.Width = screen.Bounds.Width;
@@ -114,9 +121,7 @@ public class LinuxPlatform : IPlatform
             window.Position = screen.Bounds.Position;
             window.WindowState = WindowState.FullScreen;
 
-            windows.Add(window);
-
-            viewModel.PointerEventHandler = new PointerEventHandler<MainWindowViewModel>(viewModel, _viewModels);
+            viewModel.PointerEventHandler = new PointerEventHandler<MainWindowViewModel>(viewModel, ViewModels);
 
             window.Closed += (sender, args) =>
             {
@@ -125,34 +130,28 @@ public class LinuxPlatform : IPlatform
                     w.Close();
                 }
             };
+
+            AddEscKeyCloseHandler(window);
+            windows.Add(window);
         }
 
-        // Crop individual screenshots after main screenshot is captured
         foreach (var screen in allScreens)
         {
-            var pathimage = _screenshotService.CropScreenshot(screen.Bounds.X,
+            var pathImage = ScreenshotCropper.CropScreenshot(screen.Bounds.X,
                 screen.Bounds.Y,
                 screen.Bounds.Width, screen.Bounds.Height);
 
-            // Assign the cropped screenshot path to ViewModel
-            _viewModels[allScreens.IndexOf(screen)].ImageWindow.ImageFromBinding = new Bitmap(pathimage);
-            _viewModels[allScreens.IndexOf(screen)].ImageWindow.ImageFromBindingPath = pathimage;
+            var viewModel = ViewModels[allScreens.IndexOf(screen)];
+            viewModel.ImageWindow.ImageFromBinding = new Bitmap(pathImage);
+            viewModel.ImageWindow.ImageFromBindingPath = pathImage;
         }
 
-        // Now show the windows
         foreach (var win in windows)
         {
             win.Show();
         }
 
-        // No need to return windows list since it's already used above
-        return null;
-    }
-
-
-    public void CleanupAsync()
-    {
-        _screenshotService.CleanupTemporaryImages();
+        return windows;
     }
 
     public Window CreateWindow<TViewModel>(TViewModel viewModel) where TViewModel : ViewModelBase
@@ -165,28 +164,14 @@ public class LinuxPlatform : IPlatform
     }
 }
 
-
-
-// public class MacPlatform : IPlatform
-// {
-//     private readonly IScreenshotService<double> _screenshotService;
-//
-//     public MacPlatform()
-//     {
-//         _screenshotService = ServiceLocator.Resolve<IScreenshotService<double>>();
-//     }
-//
-//     public List<Window> CreateWindowsAsync()
-//     {
-//         // Implement Mac-specific behavior
-//         throw new NotImplementedException();
-//     }
-//
-//     public void CleanupAsync()
-//     {
-//         _screenshotService.CleanupTemporaryImages();
-//     }
-// }
+public class MacPlatform : PlatformBase
+{
+    public override List<Window> CreateWindowsAsync()
+    {
+        // Implement Mac-specific behavior
+        throw new NotImplementedException();
+    }
+}
 
 public static class PlatformFactory
 {
@@ -201,6 +186,7 @@ public static class PlatformFactory
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
+            ServiceLocator.Register<IVirtualEnvActivator>(new WindowsVirtualEnvActivator());
             ServiceLocator.Register<IScreenshotService<double>>(new WindowsScreenshotService());
             return new WindowsPlatform();
         }
@@ -210,16 +196,18 @@ public static class PlatformFactory
             var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY");
             if (waylandDisplay != null && IsGnome())
             {
+                ServiceLocator.Register<IVirtualEnvActivator>(new LinuxVirtualEnvActivator());
                 ServiceLocator.Register<IScreenshotService<double>>(new GnomeWaylandScreenshotService());
                 return new LinuxPlatform();
             }
         }
 
-        // if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        // {
-        //     ServiceLocator.Register<IScreenshotService<double>>(new MacScreenshotService());
-        //     return new MacPlatform();
-        // }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            ServiceLocator.Register<IVirtualEnvActivator>(new MacOSVirtualEnvActivator());
+            ServiceLocator.Register<IScreenshotService<double>>(new MacScreenshotService());
+            return new MacPlatform();
+        }
 
         throw new PlatformNotSupportedException("Unsupported platform or environment.");
     }

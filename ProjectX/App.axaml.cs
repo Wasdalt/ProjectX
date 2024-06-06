@@ -28,14 +28,16 @@ public class App : Application
             // Программа уже запущена
             ServiceLocator.ShutdownService.Shutdown();
         }
+
         ServiceLocator.Register<IPageFactory>(new PageFactory());
         _platform = PlatformFactory.CreatePlatform();
-        _platform.CreateWindowsAsync(); // Windows are created and shown within this method
+        _platform.CreateWindowsAsync();
 
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         Console.CancelKeyPress += OnCancelKeyPress;
-    }
 
+        base.OnFrameworkInitializationCompleted();
+    }
 
     private void OnProcessExit(object? sender, EventArgs e)
     {
@@ -69,4 +71,4 @@ public class App : Application
             }
         }
     }
-} 
+}

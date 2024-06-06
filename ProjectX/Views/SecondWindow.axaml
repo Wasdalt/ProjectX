@@ -1,7 +1,8 @@
 <Window
+    Background="Aqua"
     Height="450"
-    MinWidth="300"
-    Title="SecondWindow"
+    MinWidth="450"
+    Title="HelpaOCR_alfa_ProjectX_w2"
     Width="650"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d"

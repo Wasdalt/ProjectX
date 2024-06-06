@@ -60,7 +60,7 @@ namespace ProjectX.Models
 
         private void UpdateResults()
         {
-            _resultsModel.Results = $"({Left}, {Top}), {Width}x{Height}";
+            _resultsModel.Results = $"{Width}x{Height}";
             this.RaisePropertyChanged(nameof(HasNonZeroDimensions));
         }
 

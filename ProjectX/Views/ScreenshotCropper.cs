@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Processing;
 namespace ProjectX.Views;
 public class ScreenshotCropper
 {
-    public async Task<string> CropScreenshotAsync(int startX, int startY, int width, int height)
+    public static string CropScreenshot(int startX, int startY, int width, int height)
     {
         string outputPath = Path.Combine(ProjectPathProvider.AssetsDirectory,
             $"screenshot_cropped_{startX}_{startY}_{width}_{height}.png");
@@ -17,11 +17,11 @@ public class ScreenshotCropper
         {
             string inputPath = ProjectPathProvider.ImagePattern;
 
-            using (Image image = await Image.LoadAsync(inputPath))
+            using (Image image = Image.Load(inputPath))
             {
                 Rectangle cropArea = new Rectangle(startX, startY, width, height);
                 image.Mutate(x => x.Crop(cropArea));
-                await image.SaveAsync(outputPath);
+                image.Save(outputPath);
                 TemporaryImageManager.Instance.Add(outputPath);
                 return outputPath;
             }

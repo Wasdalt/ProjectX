@@ -14,25 +14,25 @@ namespace ProjectX.Views;
 public interface IScreenshotService<T>
 {
     string CaptureScreenshot(params T[] args);
-    string CropScreenshot(int startX, int startY, int width, int height);
+    // string CropScreenshot(int startX, int startY, int width, int height);
     void CleanupTemporaryImages();
 }
 
 public abstract class ScreenshotService : IScreenshotService<double>
 {
-    protected readonly ScreenshotCropper Cropper;
-
-    protected ScreenshotService()
-    {
-        Cropper = new ScreenshotCropper();
-    }
+    // protected readonly ScreenshotCropper Cropper;
+    //
+    // protected ScreenshotService()
+    // {
+    //     Cropper = new ScreenshotCropper();
+    // }
 
     public abstract string CaptureScreenshot(params double[] args);
 
-    public string CropScreenshot(int startX, int startY, int width, int height)
-    {
-        return Task.Run(() => Cropper.CropScreenshotAsync(startX, startY, width, height)).Result;
-    }
+    // public string CropScreenshot(int startX, int startY, int width, int height)
+    // {
+    //     return Task.Run(() => Cropper.CropScreenshotAsync(startX, startY, width, height)).Result;
+    // }
 
 
     public void CleanupTemporaryImages()

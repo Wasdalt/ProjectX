@@ -59,6 +59,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         await ShowWindow<SecondWindowViewModel, OCRPage>(() => ImageCropper);
     }
+
     private async Task ShowWindow<TViewModel, TPage>(params Func<ViewModelBase>[] createViewModels)
         where TViewModel : SecondWindowViewModel, new()
         where TPage : IPage, new()
@@ -78,7 +79,7 @@ public class MainWindowViewModel : ViewModelBase
             }
         }
 
-        viewModel.NavigateToPage<TPage>(viewModel);
+        viewModel.NavigateToPage<TPage>();
         await ShowDialogForSecondWindow.Handle(viewModel);
     }
 

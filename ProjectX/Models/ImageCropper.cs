@@ -26,6 +26,13 @@ public class ImageCropper : ViewModelBase
         }
     }
 
+    private string _text;
+
+    public string Text
+    {
+        get => _text;
+        set => this.RaiseAndSetIfChanged(ref _text, value);
+    }
     private void UpdateImage()
     {
         if (string.IsNullOrEmpty(_imagePath))

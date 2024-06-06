@@ -1,6 +1,6 @@
 <Window
     Icon="/Assets/avalonia-logo.ico"
-    Title="ProjectX"
+    Title="HelpaOCR_alfa_ProjectX"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d"
@@ -12,46 +12,11 @@
     xmlns:vm="using:ProjectX.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- <Grid> -->
-    <!--     <Image Source="{Binding ImageWindow.ImageFromBinding}" Stretch="Fill" /> -->
-    <!--  <Canvas  -->
-    <!--  Background="Transparent"  -->
-    <!--  PointerMoved="Canvas_PointerMoved"  -->
-    <!--  PointerPressed="Canvas_PointerPressed"  -->
-    <!--  PointerReleased="Canvas_PointerReleased">  -->
-    <!--    -->
-    <!--  <Path  -->
-    <!--  Data="{Binding PathModel.Data}"  -->
-    <!--  Fill="{x:Static Brushes.Black}"  -->
-    <!--  HorizontalAlignment="Stretch"  -->
-    <!--  Opacity="0.5"  -->
-    <!--  VerticalAlignment="Stretch" />  -->
-    <!--         <StackPanel Orientation="Vertical" Spacing="5"> -->
-    <!--             <TextBlock Foreground="Beige" Text="{Binding SizeWindow.WindowPosition}" /> -->
-    <!--             <TextBlock Foreground="Beige"> -->
-    <!--                 <Run Text="{Binding SizeWindow.Width}" /> -->
-    <!--                 <Run Text="{Binding SizeWindow.Height}" /> -->
-    <!--             </TextBlock> -->
-    <!--             <TextBlock Foreground="Beige" Text="{Binding ResultsModel.Results}" /> -->
-    <!--         </StackPanel> -->
-    <!--  <Rectangle  -->
-    <!--  Canvas.Left="{Binding RectangleModel.Left}"  -->
-    <!--  Canvas.Top="{Binding RectangleModel.Top}"  -->
-    <!--  Height="{Binding RectangleModel.Height}"  -->
-    <!--  HorizontalAlignment="Stretch"  -->
-    <!--  Stroke="Red"  -->
-    <!--  StrokeDashArray="4"  -->
-    <!--  StrokeThickness="2"  -->
-    <!--  VerticalAlignment="Stretch"  -->
-    <!--  Width="{Binding RectangleModel.Width}" />  -->
-    <!--     </Canvas> -->
-    <!-- </Grid> -->
-
-
     <Grid>
         <Image Source="{Binding ImageWindow.ImageFromBinding}" Stretch="Fill" />
         <Canvas
             Background="Transparent"
+            ClipToBounds="False"
             PointerMoved="Canvas_PointerMoved"
             PointerPressed="Canvas_PointerPressed"
             PointerReleased="Canvas_PointerReleased">
@@ -75,7 +40,7 @@
                 Canvas.Top="{Binding RectangleModel.Top}"
                 ColumnDefinitions="1*, Auto, Auto"
                 HorizontalAlignment="Stretch"
-                RowDefinitions="1*, 5, Auto"
+                RowDefinitions="1*, 5, 30"
                 VerticalAlignment="Stretch">
 
                 <Rectangle
@@ -106,34 +71,26 @@
                             Padding="8"
                             Text="{Binding ResultsModel.Results}" />
                     </Border>
-                    <StackPanel
-                        ClipToBounds="False"
-                        Grid.Column="4"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal"
-                        Spacing="5">
-                        <Button
-                            Command="{Binding ShowOCRCommand}"
-                            Height="30"
-                            Padding="3"
-                            Width="30">
-                            <Image Source="/Assets/text-recognising.png" />
-                        </Button>
-                        <Button
-                            Command="{Binding ShowImageCommand}"
-                            Height="30"
-                            Padding="3"
-                            Width="30">
-                            <Image Source="/Assets/image.png" />
-                        </Button>
-                        <Button
-                            Command="{Binding CloseCommand}"
-                            Height="30"
-                            Padding="5"
-                            Width="30">
-                            <Image Source="/Assets/close-cross.png" />
-                        </Button>
-                    </StackPanel>
+                    <Border
+                        Background="#FF393939"
+                        CornerRadius="5"
+                        Grid.Column="4">
+                        <StackPanel
+                            ClipToBounds="False"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="5">
+                            <Button Command="{Binding ShowOCRCommand}" Padding="3">
+                                <Image Source="/Assets/text-recognising.png" />
+                            </Button>
+                            <Button Command="{Binding ShowImageCommand}" Padding="3">
+                                <Image Source="/Assets/image.png" />
+                            </Button>
+                            <Button Command="{Binding CloseCommand}" Padding="5">
+                                <Image Source="/Assets/close-cross.png" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Grid>
         </Canvas>
