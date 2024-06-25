@@ -1,0 +1,151 @@
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="ProjectX.ViewModels.Page.Settings.SettingsPage"
+    x:DataType="page:SecondWindowViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:page="clr-namespace:ProjectX.ViewModels.Page"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid
+        Background="#171717"
+        ColumnDefinitions="20, 1*, 20, 1*, 20"
+        RowDefinitions="20, Auto, 20, Auto, 20, 1*, Auto, 20">
+
+        <Label
+            Content="Настройки"
+            FontSize="24"
+            Foreground="Beige"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Grid.Row="1"
+            HorizontalContentAlignment="Center" />
+        <Border
+            Background="#252526"
+            CornerRadius="8"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Grid.Row="6">
+            <Grid ColumnDefinitions="15, 1*, 15, 1*, 15" RowDefinitions="15, 1*,Auto, 1*, 15">
+                <Button
+                    Background="#FF393939"
+                    Command="{Binding SaveConfigCommand}"
+                    Content="Сохранить"
+                    FontSize="16"
+                    Foreground="#FFE8E8E8"
+                    Grid.Column="3"
+                    Grid.Row="2"
+                    HorizontalAlignment="Right" />
+            </Grid>
+        </Border>
+
+        <Border
+            Background="#252526"
+            CornerRadius="8"
+            Grid.Column="1"
+            Grid.Row="3">
+            <Grid ColumnDefinitions="20, 1*, 20, 1*, 20" RowDefinitions="20, Auto, 5,  Auto, 10,  Auto, 5, 1*,  10">
+
+                <Label
+                    Content="Комбинация запуска"
+                    FontSize="16"
+                    Foreground="Beige"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="1" />
+
+                <!--  <TextBox  -->
+                <!--  GotFocus="OnTextBoxGotFocus"  -->
+                <!--  Grid.Column="1"  -->
+                <!--  Grid.ColumnSpan="3"  -->
+                <!--  Grid.Row="3"  -->
+                <!--  HorizontalAlignment="Left"  -->
+                <!--  IsReadOnly="True"  -->
+                <!--  KeyDown="OnTextBoxKeyDown"  -->
+                <!--  LostFocus="OnTextBoxLostFocus"  -->
+                <!--  Text="{Binding KeySettings.LaunchKeyCombination, Mode=TwoWay}" />  -->
+
+
+                <Grid
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox
+                        GotFocus="OnTextBoxGotFocus"
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        HorizontalAlignment="Left"
+                        IsReadOnly="True"
+                        KeyDown="OnTextBoxKeyDown"
+                        LostFocus="OnTextBoxLostFocus"
+                        Text="{Binding KeySettings.LaunchKeyCombination, Mode=TwoWay}" />
+
+                    <Button
+                        Command="{Binding ClearKeyCombinationCommand}"
+                        Grid.Column="4"
+                        Grid.Row="1"
+                        Padding="4">
+                        <Image Source="/Assets/dustbin.png" />
+                    </Button>
+                </Grid>
+            </Grid>
+
+        </Border>
+
+        <Border
+            Background="#252526"
+            CornerRadius="8"
+            Grid.Column="3"
+            Grid.Row="3">
+            <Grid ColumnDefinitions="20, 1*, 20, 1*, 20" RowDefinitions="20, Auto, 5,  Auto, 10,  Auto, 5,  Auto, 20, Auto, 1*,  10">
+
+                <Label
+                    Content="Движок OCR"
+                    FontSize="16"
+                    Foreground="Beige"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="1" />
+
+                <ComboBox
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="3"
+                    ItemsSource="{Binding OcrSettings.AvailableOcrEngines}"
+                    SelectedItem="{Binding OcrSettings.SelectedOcrEngine}"
+                    Width="140" />
+
+                <Label
+                    Content="Язык"
+                    FontSize="16"
+                    Foreground="Beige"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="5" />
+
+                <ComboBox
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="7"
+                    ItemsSource="{Binding OcrSettings.AvailableLanguages}"
+                    SelectedItem="{Binding OcrSettings.SelectedLanguage}"
+                    Width="140" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

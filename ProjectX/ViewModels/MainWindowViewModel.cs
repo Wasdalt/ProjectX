@@ -12,6 +12,7 @@ using ProjectX.Models.SelectionToolCropping;
 using ProjectX.ViewModels.Page;
 using ProjectX.ViewModels.Page.RealizationOCR;
 using ProjectX.ViewModels.Page.RealizationSaveImage;
+using ProjectX.ViewModels.Page.Settings;
 using ProjectX.Views;
 using ReactiveUI;
 using Point = Avalonia.Point;
@@ -36,6 +37,8 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ShowImageCommand { get; }
     
     public ReactiveCommand<Unit, Unit> ShowOCRCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> ShowSettingsCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -48,6 +51,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowImageCommand = ReactiveCommand.CreateFromTask(ShowImage);
         CloseCommand = ReactiveCommand.Create(OnCloseCommandExecuted);
         ShowOCRCommand = ReactiveCommand.CreateFromTask(ShowOCR);
+        ShowSettingsCommand = ReactiveCommand.CreateFromTask(ShowSettings);
     }
 
     private async Task ShowImage()
@@ -58,6 +62,11 @@ public class MainWindowViewModel : ViewModelBase
     private async Task ShowOCR()
     {
         await ShowWindow<SecondWindowViewModel, OCRPage>(() => ImageCropper);
+    }
+    
+    private async Task ShowSettings()
+    {
+        await ShowWindow<SecondWindowViewModel, SettingsPage>();
     }
 
     private async Task ShowWindow<TViewModel, TPage>(params Func<ViewModelBase>[] createViewModels)
@@ -106,7 +115,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void WindowImageCorrect()
     {
-        // Implement your logic here if needed
+
     }
 
     public void CutOutRectangleFromPath(RectangleModel rectangleModel)

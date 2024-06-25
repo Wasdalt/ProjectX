@@ -1,184 +1,565 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Input.Platform;
+using Avalonia.Input;
 using ProjectX.Models;
 using ProjectX.Models.Screen;
 using ProjectX.ViewModels.Page.RealizationOCR;
-using ProjectX.ViewModels.Page.RealizationSaveImage;
+using ProjectX.ViewModels.Page.Settings;
 using ProjectX.Views;
 using ReactiveUI;
 
 namespace ProjectX.ViewModels.Page;
 
-public class SaveFileDialogService
-{
-    public async Task<string?> ShowSaveFileDialogAsync(Window window, string? defaultFileName = null)
-    {
-        var saveFileDialog = new SaveFileDialog
-        {
-            DefaultExtension = "png",
-            Filters = new List<FileDialogFilter>
-            {
-                new() { Name = "Image Files", Extensions = new List<string> { "png", "jpg", "jpeg" } },
-                new() { Name = "All Files", Extensions = new List<string> { "*" } }
-            },
-            InitialFileName = defaultFileName
-        };
+// public class SecondWindowViewModel : PageViewModelBase
+// {
+//     private readonly IPageFactory _pageFactory;
+//     private readonly SaveFileDialogService _saveFileDialogService;
+//     private readonly FileSaveService _fileSaveService;
+//     private readonly SaveTextFileDialogService _saveTextFileDialogService;
+//     private readonly TextFileSaveService _textFileSaveService;
+//
+//     public ImageCropper ImageCropper { get; set; } = new();
+//     public Interaction<Unit, string?> ShowSaveFileDialog { get; }
+//     public ReactiveCommand<Unit, Unit> OpenSaveFileCommand { get; }
+//     public ReactiveCommand<Unit, Unit> SaveToMyPicturesCommand { get; }
+//     public Interaction<Unit, string?> ShowSaveTextFileDialog { get; }
+//     public ReactiveCommand<Unit, Unit> OpenSaveTextFileCommand { get; }
+//     public ReactiveCommand<Unit, Unit> SaveToMyDocumentsCommand { get; }
+//     public ReactiveCommand<Unit, Unit> CopyTextToClipboardCommand { get; }
+//     public ReactiveCommand<Unit, Unit> SaveConfigCommand { get; }
+//     
+//     private List<Key> _pressedKeys;
+//     private bool _isRecordingKeys;
+//     private string _launchKeyCombination;
+//
+//     public SecondWindowViewModel()
+//     {
+//         AvailableOCREngines = Enum.GetValues(typeof(OCREngine)).Cast<OCREngine>().ToList();
+//         _pageFactory = ServiceLocator.Resolve<IPageFactory>();
+//         _saveFileDialogService = new SaveFileDialogService();
+//         _fileSaveService = new FileSaveService();
+//         ShowSaveFileDialog = new Interaction<Unit, string?>();
+//         OpenSaveFileCommand = ReactiveCommand.CreateFromTask(SaveFileAsync);
+//         SaveToMyPicturesCommand = ReactiveCommand.CreateFromTask(SaveToMyPicturesAsync);
+//         _saveTextFileDialogService = new SaveTextFileDialogService();
+//         _textFileSaveService = new TextFileSaveService();
+//         ShowSaveTextFileDialog = new Interaction<Unit, string?>();
+//         OpenSaveTextFileCommand = ReactiveCommand.CreateFromTask(SaveTextFileAsync);
+//         SaveToMyDocumentsCommand = ReactiveCommand.CreateFromTask(SaveToMyDocumentsAsync);
+//         CopyTextToClipboardCommand = ReactiveCommand.CreateFromTask(CopyTextToClipboardAsync);
+//         SaveConfigCommand = ReactiveCommand.Create(SaveConfig);
+//     }
+//
+//     
+//         public string LaunchKeyCombination
+//     {
+//         get => _launchKeyCombination;
+//         set => this.RaiseAndSetIfChanged(ref _launchKeyCombination, value);
+//     }
+//
+//     public void OnTextBoxGotFocus()
+//     {
+//         _isRecordingKeys = true;
+//     }
+//
+//     public void OnTextBoxLostFocus()
+//     {
+//         _isRecordingKeys = false;
+//     }
+//
+//     public void OnTextBoxKeyDown(KeyEventArgs e)
+//     {
+//         if (_isRecordingKeys)
+//         {
+//             e.Handled = true; // Prevent default handling of the key event
+//
+//             if (e.Key == Key.Escape) // Allow user to cancel the recording
+//             {
+//                 _isRecordingKeys = false;
+//                 _pressedKeys.Clear();
+//                 LaunchKeyCombination = "Press keys...";
+//                 return;
+//             }
+//
+//             // Ensure the first key is a modifier (Shift, Alt, Ctrl)
+//             if (_pressedKeys.Count == 0 && !IsModifierKey(e.Key))
+//             {
+//                 return; // Ignore non-modifier keys if no keys have been recorded yet
+//             }
+//
+//             // If a new modifier key is pressed and we have reached the limit, restart the combination
+//             if (_pressedKeys.Count >= 3 && IsModifierKey(e.Key))
+//             {
+//                 _pressedKeys.Clear();
+//             }
+//
+//             // Add the key to the list of pressed keys
+//             if (!_pressedKeys.Contains(e.Key))
+//             {
+//                 _pressedKeys.Add(e.Key);
+//             }
+//
+//             // Build the combination string
+//             var keyCombinationBuilder = new StringBuilder();
+//
+//             // Append the keys dynamically
+//             foreach (var key in _pressedKeys)
+//             {
+//                 if (keyCombinationBuilder.Length > 0)
+//                 {
+//                     keyCombinationBuilder.Append(" + ");
+//                 }
+//                 keyCombinationBuilder.Append(key.ToString());
+//             }
+//
+//             LaunchKeyCombination = keyCombinationBuilder.ToString();
+//
+//             // Stop recording if more than 3 keys are pressed and not a new modifier key
+//             if (_pressedKeys.Count >= 3 && !IsModifierKey(e.Key))
+//             {
+//                 _isRecordingKeys = false;
+//             }
+//         }
+//     }
+//
+//     private bool IsModifierKey(Key key)
+//     {
+//         return key == Key.LeftShift || key == Key.RightShift ||
+//                key == Key.LeftCtrl || key == Key.RightCtrl ||
+//                key == Key.LeftAlt || key == Key.RightAlt;
+//     }
+//     private bool _isBusy;
+//     public bool IsBusy
+//     {
+//         get => _isBusy;
+//         set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+//     }
+//
+//     private OCREngine _selectedOCREngine;
+//     public OCREngine SelectedOCREngine
+//     {
+//         get => _selectedOCREngine;
+//         set
+//         {
+//             this.RaiseAndSetIfChanged(ref _selectedOCREngine, value);
+//             UpdateLanguageOptions();
+//         }
+//     }
+//
+//     private string _selectedLanguage = null!;
+//     public string SelectedLanguage
+//     {
+//         get => _selectedLanguage;
+//         set => this.RaiseAndSetIfChanged(ref _selectedLanguage, value);
+//     }
+//
+//     private List<OCREngine> _availableOCREngines = null!;
+//     public List<OCREngine> AvailableOCREngines
+//     {
+//         get => _availableOCREngines;
+//         set => this.RaiseAndSetIfChanged(ref _availableOCREngines, value);
+//     }
+//
+//     private List<string> _availableLanguages = null!;
+//     public List<string> AvailableLanguages
+//     {
+//         get => _availableLanguages;
+//         set => this.RaiseAndSetIfChanged(ref _availableLanguages, value);
+//     }
+//
+//     private void LoadConfig()
+//     {
+//         var config = AppConfig.Instance;
+//         SelectedOCREngine = config.OCREngine;
+//         UpdateLanguageOptions();
+//         SelectedLanguage = config.OCRLanguage;
+//     }
+//
+//     private void UpdateLanguageOptions()
+//     {
+//         switch (SelectedOCREngine)
+//         {
+//             case OCREngine.TesseractOCR:
+//                 AvailableLanguages = new List<string> { "rus", "eng", "rus+eng" };
+//                 break;
+//             case OCREngine.EasyOCR:
+//                 AvailableLanguages = new List<string> { "ru", "en" };
+//                 break;
+//         }
+//         SelectedLanguage = AvailableLanguages.Contains(SelectedLanguage) ? SelectedLanguage : AvailableLanguages.FirstOrDefault();
+//     }
+//
+//     private void SaveConfig()
+//     {
+//         var config = AppConfig.Instance;
+//         config.SetOCREngine(SelectedOCREngine);
+//         config.SetOCRLanguage(SelectedLanguage);
+//     }
+//
+//     private async Task CopyTextToClipboardAsync()
+//     {
+//         if (!string.IsNullOrEmpty(ImageCropper.Text))
+//         {
+//             try
+//             {
+//                 var clipboard = ScreenManager.Instance.MainWindow.Clipboard;
+//                 await clipboard.SetTextAsync(ImageCropper.Text);
+//             }
+//             catch (InvalidOperationException ex)
+//             {
+//                 Console.WriteLine($"Error copying to clipboard: {ex.Message}");
+//             }
+//         }
+//     }
+//
+//     private async Task SaveTextFileAsync()
+//     {
+//         var result = await ShowSaveTextFileDialog.Handle(Unit.Default);
+//         if (!string.IsNullOrEmpty(result) && !string.IsNullOrEmpty(ImageCropper.Text))
+//         {
+//             _textFileSaveService.SaveTextFile(ImageCropper.Text, result);
+//         }
+//     }
+//
+//     private Task SaveToMyDocumentsAsync()
+//     {
+//         if (!string.IsNullOrEmpty(ImageCropper.Text))
+//             _textFileSaveService.SaveToMyDocuments(ImageCropper.Text);
+//         return Task.CompletedTask;
+//     }
+//
+//     private async Task DoSaveTextFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
+//     {
+//         var result = await _saveTextFileDialogService.ShowSaveTextFileDialogAsync(window, "scanned_text.txt");
+//         interaction.SetOutput(result);
+//     }
+//
+//     private async Task SaveFileAsync()
+//     {
+//         var result = await ShowSaveFileDialog.Handle(Unit.Default);
+//         if (string.IsNullOrEmpty(result) && ImageCropper.ImageCropperFromBindingPath != null)
+//         {
+//             string filePath = Path.Combine(
+//                 Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+//                 Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+//             _fileSaveService.SaveFile(ImageCropper.ImageCropperFromBindingPath, filePath);
+//         }
+//         else if (ImageCropper.ImageCropperFromBindingPath != null)
+//         {
+//             _fileSaveService.SaveFile(ImageCropper.ImageCropperFromBindingPath, result);
+//         }
+//     }
+//
+//     private Task SaveToMyPicturesAsync()
+//     {
+//         if (ImageCropper.ImageCropperFromBindingPath != null)
+//             _fileSaveService.SaveToMyPictures(ImageCropper.ImageCropperFromBindingPath);
+//         return Task.CompletedTask;
+//     }
+//
+//     private async Task DoSaveFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
+//     {
+//         var result = await _saveFileDialogService.ShowSaveFileDialogAsync(window, Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+//         if (string.IsNullOrEmpty(result) && ImageCropper.ImageCropperFromBindingPath != null)
+//         {
+//             result = Path.Combine(
+//                 Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+//                 Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+//         }
+//
+//         interaction.SetOutput(result);
+//     }
+//
+//     public void SubscribeToEvents(SecondWindow window)
+//     {
+//         window.WhenActivated(d =>
+//         {
+//             d(ShowSaveFileDialog.RegisterHandler(interaction => DoSaveFileDialogAsync(interaction, window)));
+//             d(ShowSaveTextFileDialog.RegisterHandler(interaction => DoSaveTextFileDialogAsync(interaction, window)));
+//         });
+//     }
+//
+//     public new void NavigateToPage<T>() where T : IPage, new()
+//     {
+//         CurrentPage = _pageFactory.CreatePage<T>();
+//
+//         if (typeof(T) == typeof(OCRPage))
+//         {
+//             StartOCRecognition();
+//         }
+//         if (typeof(T) == typeof(SettingsPage))
+//         {
+//             _pressedKeys = new List<Key>();
+//             _isRecordingKeys = false;
+//             LaunchKeyCombination = "Press keys...";
+//             LoadConfig();
+//         }
+//     }
+//
+//     private async Task StartOCRecognition()
+//     {
+//         IsBusy = true;
+//         try
+//         {
+//             ImageCropper.Text = await Task.Run(() =>
+//                 PythonScriptExecutor.CaptureScannerText(ImageCropper.ImageCropperFromBindingPath!));
+//         }
+//         catch (Exception ex)
+//         {
+//             // Handle exception
+//         }
+//         finally
+//         {
+//             IsBusy = false;
+//         }
+//     }
+// }
+//
 
-        return await saveFileDialog.ShowAsync(window);
+public class SettingsKey : ViewModelBase
+{
+    private List<Key> _pressedKeys;
+    private bool _isRecordingKeys;
+    private string _launchKeyCombination;
+
+    private const string PlaceholderText = "Нажмите комбинацию...";
+
+    public string LaunchKeyCombination
+    {
+        get => string.IsNullOrEmpty(_launchKeyCombination) ? PlaceholderText : _launchKeyCombination;
+        set
+        {
+            var newValue = string.IsNullOrEmpty(value) || value == PlaceholderText ? string.Empty : value;
+            this.RaiseAndSetIfChanged(ref _launchKeyCombination, newValue);
+        }
     }
-}
 
-public class SaveTextFileDialogService
-{
-    public async Task<string?> ShowSaveTextFileDialogAsync(Window window, string? defaultFileName = null)
+    public ReactiveCommand<Unit, Unit> ClearKeyCombinationCommand { get; }
+
+    public SettingsKey()
     {
-        var saveFileDialog = new SaveFileDialog
-        {
-            DefaultExtension = "txt",
-            Filters = new List<FileDialogFilter>
-            {
-                new() { Name = "Text Files", Extensions = new List<string> { "txt" } },
-                new() { Name = "Word Documents", Extensions = new List<string> { "docx", "doc" } },
-                new() { Name = "All Files", Extensions = new List<string> { "*" } }
-            },
-            InitialFileName = defaultFileName
-        };
+        _pressedKeys = new List<Key>();
+        _isRecordingKeys = false;
+        _launchKeyCombination = AppConfig.Instance.LaunchKeyCombination;
 
-        return await saveFileDialog.ShowAsync(window);
+        // Initialize the ClearKeyCombinationCommand
+        ClearKeyCombinationCommand = ReactiveCommand.Create(ClearKeyCombination);
+
+        if (string.IsNullOrEmpty(_launchKeyCombination))
+        {
+            _launchKeyCombination = PlaceholderText;
+        }
     }
-}
 
-
-public class FileSaveService
-{
-    public void SaveFile(string sourcePath, string destinationPath)
+    public void OnTextBoxGotFocus()
     {
-        if (File.Exists(sourcePath))
+        _isRecordingKeys = true;
+
+        // Clear the placeholder text when starting to record keys
+        if (_launchKeyCombination == PlaceholderText)
         {
-            try
+            _launchKeyCombination = string.Empty;
+        }
+    }
+
+    public void OnTextBoxLostFocus()
+    {
+        _isRecordingKeys = false;
+
+        // If no keys were recorded, reset to placeholder text
+        if (string.IsNullOrEmpty(_launchKeyCombination))
+        {
+            _launchKeyCombination = PlaceholderText;
+        }
+    }
+
+    public void OnTextBoxKeyDown(KeyEventArgs e)
+    {
+        if (_isRecordingKeys)
+        {
+            e.Handled = true; // Prevent default handling of the key event
+
+            if (e.Key == Key.Escape) // Allow user to cancel the recording
             {
-                File.Copy(sourcePath, destinationPath, true);
+                _isRecordingKeys = false;
+                _pressedKeys.Clear();
+                LaunchKeyCombination = string.Empty;
+                return;
             }
-            catch (Exception ex)
+
+            // Ensure the first key is a modifier (Shift, Alt, Ctrl)
+            if (_pressedKeys.Count == 0 && !IsModifierKey(e.Key))
             {
-                Console.WriteLine($"Ошибка при сохранении файла: {ex.Message}");
+                return; // Ignore non-modifier keys if no keys have been recorded yet
+            }
+
+            // If a new modifier key is pressed and we have reached the limit, restart the combination
+            if (_pressedKeys.Count >= 3 && IsModifierKey(e.Key))
+            {
+                _pressedKeys.Clear();
+            }
+
+            // Add the key to the list of pressed keys
+            if (!_pressedKeys.Contains(e.Key))
+            {
+                _pressedKeys.Add(e.Key);
+            }
+
+            // Build the combination string
+            var keyCombinationBuilder = new StringBuilder();
+
+            // Append the keys dynamically
+            foreach (var key in _pressedKeys)
+            {
+                if (keyCombinationBuilder.Length > 0)
+                {
+                    keyCombinationBuilder.Append(" + ");
+                }
+
+                keyCombinationBuilder.Append(key.ToString());
+            }
+
+            LaunchKeyCombination = keyCombinationBuilder.ToString();
+
+            // Stop recording if more than 3 keys are pressed and not a new modifier key
+            if (_pressedKeys.Count >= 3 && !IsModifierKey(e.Key))
+            {
+                _isRecordingKeys = false;
             }
         }
-        else
-        {
-            Console.WriteLine("Исходный файл не найден.");
-        }
     }
 
-    public void SaveToMyPictures(string sourcePath)
+    public void ResetKeyRecording()
     {
-        string myPicturesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-        var filePath = Path.Combine(myPicturesPath, Path.GetFileName(sourcePath)!);
-
-        SaveFile(sourcePath, filePath);
-    }
-}
-
-public class TextFileSaveService
-{
-    public void SaveTextFile(string text, string destinationPath)
-    {
-        try
-        {
-            File.WriteAllText(destinationPath, text);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при сохранении текстового файла: {ex.Message}");
-        }
+        _pressedKeys.Clear();
+        _isRecordingKeys = false;
+        LaunchKeyCombination = string.Empty;
     }
 
-    public void SaveToMyDocuments(string text)
+    private bool IsModifierKey(Key key)
     {
-        string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        var filePath = Path.Combine(myDocumentsPath, "scanned_text.txt");
+        return key == Key.LeftShift || key == Key.RightShift ||
+               key == Key.LeftCtrl || key == Key.RightCtrl ||
+               key == Key.LeftAlt || key == Key.RightAlt;
+    }
 
-        SaveTextFile(text, filePath);
+    public void SaveKeyCombination()
+    {
+        AppConfig.Instance.SetLaunchKeyCombination(_launchKeyCombination);
+    }
+
+    private void ClearKeyCombination()
+    {
+        ResetKeyRecording();
     }
 }
 
-public abstract class PageViewModelBase : ViewModelBase
-{
-    private IPage _currentPage = null!;
 
-    public IPage CurrentPage
+public class SettingsOcr : ViewModelBase
+{
+    private OCREngine _selectedOcrEngine;
+
+    public OCREngine SelectedOcrEngine
     {
-        get => _currentPage;
-        set => this.RaiseAndSetIfChanged(ref _currentPage, value);
+        get => _selectedOcrEngine;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedOcrEngine, value);
+            UpdateLanguageOptions();
+        }
+    }
+
+    private string _selectedLanguage = null!;
+
+    public string SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set => this.RaiseAndSetIfChanged(ref _selectedLanguage, value);
+    }
+
+    private List<OCREngine> _availableOcrEngines = null!;
+
+    public List<OCREngine> AvailableOcrEngines
+    {
+        get => _availableOcrEngines;
+        set => this.RaiseAndSetIfChanged(ref _availableOcrEngines, value);
+    }
+
+    private List<string> _availableLanguages = null!;
+
+    public List<string> AvailableLanguages
+    {
+        get => _availableLanguages;
+        set => this.RaiseAndSetIfChanged(ref _availableLanguages, value);
+    }
+
+    public SettingsOcr()
+    {
+        AvailableOcrEngines = Enum.GetValues(typeof(OCREngine)).Cast<OCREngine>().ToList();
+        SelectedOcrEngine = AvailableOcrEngines.FirstOrDefault();
+    }
+
+    private void UpdateLanguageOptions()
+    {
+        switch (SelectedOcrEngine)
+        {
+            case OCREngine.TesseractOCR:
+                AvailableLanguages = new List<string> { "rus", "eng", "eng+rus" };
+                break;
+            case OCREngine.EasyOCR:
+                AvailableLanguages = new List<string> { "ru", "en" };
+                break;
+            default:
+                AvailableLanguages = new List<string>();
+                break;
+        }
+
+        SelectedLanguage = AvailableLanguages.FirstOrDefault() ?? string.Empty;
+    }
+
+    public void LoadConfig()
+    {
+        var config = AppConfig.Instance;
+        SelectedOcrEngine = config.OCREngine;
+        SelectedLanguage = config.OCRLanguage;
+    }
+
+    public void SaveConfig()
+    {
+        var config = AppConfig.Instance;
+        config.SetOCREngine(SelectedOcrEngine);
+        config.SetOCRLanguage(SelectedLanguage);
     }
 }
 
 public class SecondWindowViewModel : PageViewModelBase
 {
-    // Фабрика страниц
     private readonly IPageFactory _pageFactory;
+    public SettingsKey KeySettings { get; }
+    public SettingsOcr OcrSettings { get; }
 
-    // Сервис для сохранения файлов
-    private readonly SaveFileDialogService _saveFileDialogService;
-
-    // Сервис для сохранения файлов в папку "Мои изображения"
-    private readonly FileSaveService _fileSaveService;
-    
-    // Модель для кроппинга изображений
     public ImageCropper ImageCropper { get; set; } = new();
-
-    // Интеракция для открытия диалога сохранения файла
     public Interaction<Unit, string?> ShowSaveFileDialog { get; }
-
-    // Команда для открытия диалога сохранения файла
-    public ReactiveCommand<Unit, Unit> OpenSaveFileCommand { get; }
-
-    // Команда для сохранения файла в папку "Мои изображения"
-    public ReactiveCommand<Unit, Unit> SaveToMyPicturesCommand { get; }
-    
-    // Сервис для сохранения текстовых файлов
     private readonly SaveTextFileDialogService _saveTextFileDialogService;
-
-    // Сервис для сохранения текстовых файлов в папку "Документы"
-    private readonly TextFileSaveService _textFileSaveService;
-
-    // Интеракция для открытия диалога сохранения текстового файла
+    private readonly SaveFileDialogService _saveFileDialogService;
+    private readonly FileSaveService _fileSaveService;
+    public ReactiveCommand<Unit, Unit> OpenSaveFileCommand { get; set; } = null!;
+    public ReactiveCommand<Unit, Unit> SaveToMyPicturesCommand { get; set; } = null!;
     public Interaction<Unit, string?> ShowSaveTextFileDialog { get; }
-
-    // Команда для открытия диалога сохранения текстового файла
-    public ReactiveCommand<Unit, Unit> OpenSaveTextFileCommand { get; }
-
-    // Команда для сохранения текстового файла в папку "Документы"
-    public ReactiveCommand<Unit, Unit> SaveToMyDocumentsCommand { get; }
-
-    // Команда для копирования текста в буфер обмена
-    public ReactiveCommand<Unit, Unit> CopyTextToClipboardCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenSaveTextFileCommand { get; set; } = null!;
+    public ReactiveCommand<Unit, Unit> SaveToMyDocumentsCommand { get; set; } = null!;
+    public ReactiveCommand<Unit, Unit> CopyTextToClipboardCommand { get; set; } = null!;
+    public ReactiveCommand<Unit, Unit> SaveConfigCommand { get; set; } = null!;
     
-    public SecondWindowViewModel()
-    {
-        _pageFactory = ServiceLocator.Resolve<IPageFactory>();
-        _saveFileDialogService = new SaveFileDialogService();
-        _fileSaveService = new FileSaveService();
-        ShowSaveFileDialog = new Interaction<Unit, string?>();
-        OpenSaveFileCommand = ReactiveCommand.CreateFromTask(SaveFileAsync);
-        SaveToMyPicturesCommand = ReactiveCommand.CreateFromTask(SaveToMyPicturesAsync);
-        _saveTextFileDialogService = new SaveTextFileDialogService();
-        _textFileSaveService = new TextFileSaveService();
-        ShowSaveTextFileDialog = new Interaction<Unit, string?>();
-        OpenSaveTextFileCommand = ReactiveCommand.CreateFromTask(SaveTextFileAsync);
-        SaveToMyDocumentsCommand = ReactiveCommand.CreateFromTask(SaveToMyDocumentsAsync);
-        CopyTextToClipboardCommand = ReactiveCommand.CreateFromTask(CopyTextToClipboardAsync);
-    }
+    public ReactiveCommand<Unit, Unit> ClearKeyCombinationCommand { get; set; } = null!;
+
     private bool _isBusy;
 
     public bool IsBusy
@@ -186,70 +567,63 @@ public class SecondWindowViewModel : PageViewModelBase
         get => _isBusy;
         set => this.RaiseAndSetIfChanged(ref _isBusy, value);
     }
-    
-    // Handler for the CopyTextToClipboardCommand
-    private async Task CopyTextToClipboardAsync()
+
+    public SecondWindowViewModel()
     {
-        if (!string.IsNullOrEmpty(ImageCropper.Text))
-        {
-            try
-            {
-                var clipboard = ScreenManager.Instance.MainWindow.Clipboard;
-                await clipboard.SetTextAsync(ImageCropper.Text);
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Handle the case where clipboard is not available
-                Console.WriteLine($"Error copying to clipboard: {ex.Message}");
-            }
-        }
-    }
-    
-    // Асинхронное сохранение текстового файла
-    private async Task SaveTextFileAsync()
-    {
-        var result = await ShowSaveTextFileDialog.Handle(Unit.Default);
-        if (!string.IsNullOrEmpty(result) && !string.IsNullOrEmpty(ImageCropper.Text))
-        {
-            _textFileSaveService.SaveTextFile(ImageCropper.Text, result);
-        }
+        _pageFactory = ServiceLocator.Resolve<IPageFactory>();
+
+        KeySettings = new SettingsKey();
+        OcrSettings = new SettingsOcr();
+
+        _fileSaveService = new FileSaveService();
+        ShowSaveFileDialog = new Interaction<Unit, string?>();
+        _saveTextFileDialogService = new SaveTextFileDialogService();
+        _saveFileDialogService = new SaveFileDialogService();
+        ShowSaveTextFileDialog = new Interaction<Unit, string?>();
+
+        InitializeCommands();
+        LoadConfig();
     }
 
-    // Асинхронное сохранение текстового файла в папку "Документы"
-    private Task SaveToMyDocumentsAsync()
+    private void InitializeCommands()
     {
-        if (!string.IsNullOrEmpty(ImageCropper.Text))
-            _textFileSaveService.SaveToMyDocuments(ImageCropper.Text);
-        return Task.CompletedTask;
+        OpenSaveFileCommand = ReactiveCommand.CreateFromTask(SaveFileAsync);
+        SaveToMyPicturesCommand = ReactiveCommand.CreateFromTask(SaveToMyPicturesAsync);
+        OpenSaveTextFileCommand = ReactiveCommand.CreateFromTask(SaveTextFileAsync);
+        SaveToMyDocumentsCommand = ReactiveCommand.CreateFromTask(SaveToMyDocumentsAsync);
+        CopyTextToClipboardCommand = ReactiveCommand.CreateFromTask(CopyTextToClipboardAsync);
+        SaveConfigCommand = ReactiveCommand.Create(SaveConfig);
+        ClearKeyCombinationCommand = KeySettings.ClearKeyCombinationCommand;
     }
 
-    // Асинхронное открытие диалога сохранения текстового файла
-    private async Task DoSaveTextFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
+    private void LoadConfig()
     {
-        var result = await _saveTextFileDialogService.ShowSaveTextFileDialogAsync(window, "scanned_text.txt");
-        interaction.SetOutput(result);
+        OcrSettings.LoadConfig();
+        KeySettings.LaunchKeyCombination = AppConfig.Instance.LaunchKeyCombination;
     }
 
-    // Асинхронное сохранение файла
+    private void SaveConfig()
+    {
+        OcrSettings.SaveConfig();
+        KeySettings.SaveKeyCombination();
+    }
+
     private async Task SaveFileAsync()
     {
         var result = await ShowSaveFileDialog.Handle(Unit.Default);
         if (string.IsNullOrEmpty(result) && ImageCropper.ImageCropperFromBindingPath != null)
         {
-            // Если путь к файлу не указан, сохраняем файл в папку "Мои изображения"
             string filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+                Path.GetFileName(result));
             _fileSaveService.SaveFile(ImageCropper.ImageCropperFromBindingPath, filePath);
         }
         else if (ImageCropper.ImageCropperFromBindingPath != null)
         {
-            // Если путь к файлу указан, сохраняем файл по указанному пути
             _fileSaveService.SaveFile(ImageCropper.ImageCropperFromBindingPath, result);
         }
     }
-
-    // Асинхронное сохранение файла в папку "Мои изображения"
+    
     private Task SaveToMyPicturesAsync()
     {
         if (ImageCropper.ImageCropperFromBindingPath != null)
@@ -257,22 +631,46 @@ public class SecondWindowViewModel : PageViewModelBase
         return Task.CompletedTask;
     }
 
-    // Асинхронное открытие диалога сохранения файла
-    private async Task DoSaveFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
+    private async Task SaveTextFileAsync()
     {
-        var result = await _saveFileDialogService.ShowSaveFileDialogAsync(window, Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
-        if (string.IsNullOrEmpty(result) && ImageCropper.ImageCropperFromBindingPath != null)
+        var result = await ShowSaveTextFileDialog.Handle(Unit.Default);
+        if (!string.IsNullOrEmpty(result))
         {
-            // Если путь к файлу не указан, предлагаем сохранить файл в папке "Мои изображения"
-            result = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+            string filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Path.GetFileName(result));
+            if (!string.IsNullOrEmpty(ImageCropper.Text))
+            {
+                File.WriteAllText(filePath, ImageCropper.Text);
+            }
         }
-
-        interaction.SetOutput(result);
     }
 
-    // Подписка на события окна
+    private Task SaveToMyDocumentsAsync()
+    {
+        if (!string.IsNullOrEmpty(ImageCropper.Text))
+        {
+            string filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "scanned_text.txt");
+            File.WriteAllText(filePath, ImageCropper.Text);
+        }
+
+        return Task.CompletedTask;
+    }
+
+
+    private Task CopyTextToClipboardAsync()
+    {
+        if (!string.IsNullOrEmpty(ImageCropper.Text))
+        {
+            var clipboard = ScreenManager.Instance.MainWindow.Clipboard;
+            clipboard?.SetTextAsync(ImageCropper.Text);
+        }
+
+        return Task.CompletedTask;
+    }
+
     public void SubscribeToEvents(SecondWindow window)
     {
         window.WhenActivated(d =>
@@ -282,23 +680,22 @@ public class SecondWindowViewModel : PageViewModelBase
         });
     }
 
-    // Навигация на страницу
-    public void NavigateToPage<T>() where T : IPage, new()
+    public new void NavigateToPage<T>() where T : IPage, new()
     {
         CurrentPage = _pageFactory.CreatePage<T>();
 
         if (typeof(T) == typeof(OCRPage))
         {
-            // Открываем страницу OCR
-            //...
+            StartOcRecognition();
+        }
 
-            // Затем, начинаем процесс распознавания текста
-            StartOCRecognition();
+        if (typeof(T) == typeof(SettingsPage))
+        {
+            LoadConfig();
         }
     }
 
-    // Начало процесса распознавания текста
-    private async Task StartOCRecognition()
+    private async Task StartOcRecognition()
     {
         IsBusy = true;
         try
@@ -308,150 +705,31 @@ public class SecondWindowViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            // Handle exceptions (log, display message, etc.)
+            // Handle exception
         }
         finally
         {
             IsBusy = false;
         }
     }
-}
 
-public interface IVirtualEnvActivator
-{
-    void ActivateVirtualEnv(ProcessStartInfo startInfo, string imagePath);
-}
-
-public class WindowsVirtualEnvActivator : IVirtualEnvActivator
-{
-    public void ActivateVirtualEnv(ProcessStartInfo startInfo, string imagePath)
+    private async Task DoSaveTextFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
     {
-        string venvPath = ProjectPathProvider.VirtualEnvActivationPath;
-        startInfo.FileName = "cmd.exe";
-        startInfo.Arguments = $"/c \"{venvPath} && python main.py \"{imagePath}\"\"";
+        var result = await _saveTextFileDialogService.ShowSaveTextFileDialogAsync(window, "scanned_text.txt");
+        interaction.SetOutput(result);
     }
-}
 
-public class LinuxVirtualEnvActivator : IVirtualEnvActivator
-{
-    public void ActivateVirtualEnv(ProcessStartInfo startInfo, string imagePath)
+    private async Task DoSaveFileDialogAsync(InteractionContext<Unit, string?> interaction, Window window)
     {
-        string venvPath = ProjectPathProvider.VirtualEnvActivationPath;
-        startInfo.FileName = "bash";
-        startInfo.Arguments = $"-c \"source {venvPath} && python3 main.py \"{imagePath}\"\"";
-    }
-}
-
-public class MacOSVirtualEnvActivator : IVirtualEnvActivator
-{
-    public void ActivateVirtualEnv(ProcessStartInfo startInfo, string imagePath)
-    {
-        string venvPath = ProjectPathProvider.VirtualEnvActivationPath;
-        startInfo.FileName = "bash";
-        startInfo.Arguments = $"-c \"source {venvPath} && python3 main.py \"{imagePath}\"\"";
-    }
-}
-public static class PythonScriptExecutor
-{
-    public static string CaptureScannerText(string imagePath)
-    {
-        var startInfo = new ProcessStartInfo
+        var result = await _saveFileDialogService.ShowSaveFileDialogAsync(window,
+            Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
+        if (string.IsNullOrEmpty(result) && ImageCropper.ImageCropperFromBindingPath != null)
         {
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            WorkingDirectory = ProjectPathProvider.RecognitionCodeDirectory
-        };
-
-        var activator = ServiceLocator.Resolve<IVirtualEnvActivator>();
-        activator.ActivateVirtualEnv(startInfo, imagePath);
-
-        using (var process = Process.Start(startInfo))
-        {
-            if (process == null)
-                throw new Exception("Could not start process");
-
-            process.WaitForExit();
-
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
-
-            if (!string.IsNullOrEmpty(error))
-                throw new Exception($"Something went wrong: \n{error}");
-
-            return output;
+            result = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                Path.GetFileName(ImageCropper.ImageCropperFromBindingPath));
         }
-    }
-}
 
-
-//
-//
-// public class PythonScriptExecutor
-// {
-//     public static string CaptureScannerText(string imagePath)
-//     {
-//         // Указываем путь к виртуальной среде и рабочей директории
-//         string venvPath = "/home/nubuck/RiderProjects/ProjectX/ProjectX/bin/Debug/net8.0/GG/.venv/bin/activate";
-//         string workingDirectory = "/home/nubuck/RiderProjects/ProjectX/ProjectX/bin/Debug/net8.0/GG";
-//         
-//         const string cmd = "bash";
-//         string activateVenv = $"source {venvPath}";
-//         string runPythonScript = $"python3 main.py \"{imagePath}\"";
-//
-//         var startInfo = new ProcessStartInfo
-//         {
-//             RedirectStandardOutput = true,
-//             RedirectStandardInput = true,
-//             RedirectStandardError = true,
-//             UseShellExecute = false,
-//             CreateNoWindow = true,
-//             Arguments = "",
-//             FileName = cmd,
-//             WorkingDirectory = workingDirectory
-//         };
-//
-//         var process = Process.Start(startInfo);
-//         if (process == null)
-//             throw new Exception("Could not start process");
-//
-//         using (var sw = process.StandardInput)
-//         {
-//             if (sw.BaseStream.CanWrite)
-//             {
-//                 sw.WriteLine(activateVenv);
-//                 sw.WriteLine(runPythonScript);
-//                 sw.Flush();
-//                 sw.Close();
-//             }
-//         }
-//
-//         // Ожидаем завершения процесса
-//         process.WaitForExit();
-//
-//         var output = process.StandardOutput.ReadToEnd();
-//         var error = process.StandardError.ReadToEnd();
-//
-//         if (!string.IsNullOrEmpty(error))
-//             throw new Exception($"Something went wrong: \n{error}");
-//
-//         return output;
-//     }
-// }
-
-public interface IPage;
-
-public interface IPageFactory
-{
-    IPage CreatePage<T>() where T : IPage, new();
-}
-
-public class PageFactory : IPageFactory
-{
-    public IPage CreatePage<T>() where T : IPage, new()
-    {
-        return new T();
+        interaction.SetOutput(result);
     }
 }

@@ -26,7 +26,7 @@ public class ImageCropper : ViewModelBase
         }
     }
 
-    private string _text;
+    private string _text = null!;
 
     public string Text
     {
@@ -45,7 +45,7 @@ public class ImageCropper : ViewModelBase
             {
                 ImageCropperFromBinding = new Bitmap(_imagePath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Handle exceptions, e.g., log the error
                 ImageCropperFromBinding = null;

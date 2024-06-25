@@ -12,6 +12,7 @@
     <Grid
         Background="#171717"
         ColumnDefinitions="20, 1*, 1*, 1*, 20"
+        PointerWheelChanged="OnPointerWheelChanged"
         RowDefinitions="20, 1*, 20, Auto, 20">
 
         <Grid
@@ -24,7 +25,16 @@
                 BorderBrush="#FF565656"
                 BorderThickness="3"
                 CornerRadius="3">
-                <Image Source="{Binding ImageCropper.ImageCropperFromBinding}" />
+                <ScrollViewer PointerWheelChanged="OnScrollViewerPointerWheelChanged">
+                    <Image
+                        RenderTransformOrigin="0.2,0.2"
+                        Source="{Binding ImageCropper.ImageCropperFromBinding}"
+                        x:Name="ImageControl">
+                        <Image.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1" />
+                        </Image.RenderTransform>
+                    </Image>
+                </ScrollViewer>
             </Border>
 
         </Grid>

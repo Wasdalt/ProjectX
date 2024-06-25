@@ -15,7 +15,6 @@ public class ScreenManager
 
     private ScreenManager()
     {
-        // Create an instance of MainWindow
         _mainWindow = new MainWindow();
     }
 

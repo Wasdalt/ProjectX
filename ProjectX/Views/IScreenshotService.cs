@@ -146,8 +146,7 @@ public class MacScreenshotService : ScreenshotService
         // Mac-specific screenshot creation implementation
         //...
 
-        // For demonstration, we'll just simulate a delay as if we were taking a screenshot.
-
+        // добавить код из файла 11
         return GetScreenshotPath();
     }
 }

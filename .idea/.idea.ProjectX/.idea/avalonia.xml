@@ -8,9 +8,11 @@
         <entry key="ProjectX/ViewModels/Page/RealizationOCR/OCRPage.axaml" value="ProjectX/ProjectX.csproj" />
         <entry key="ProjectX/ViewModels/Page/RealizationSaveImage/SaveImagePage.axaml" value="ProjectX/ProjectX.csproj" />
         <entry key="ProjectX/ViewModels/Page/SaveImage_Page.axaml" value="ProjectX/ProjectX.csproj" />
+        <entry key="ProjectX/ViewModels/Page/Settings/SettingsPage.axaml" value="ProjectX/ProjectX.csproj" />
         <entry key="ProjectX/ViewModels/Page/TextPage.axaml" value="ProjectX/ProjectX.csproj" />
         <entry key="ProjectX/Views/MainWindow.axaml" value="ProjectX/ProjectX.csproj" />
         <entry key="ProjectX/Views/SecondWindow.axaml" value="ProjectX/ProjectX.csproj" />
+        <entry key="ProjectX/Views/ThirdWindow.axaml" value="ProjectX/ProjectX.csproj" />
       </map>
     </option>
   </component>

@@ -5,7 +5,7 @@ namespace ProjectX.Models
 {
     public class ResultsModel : ViewModelBase
     {
-        private string _results = "Results...";
+        private string _results = "Результат...";
 
         public string Results
         {

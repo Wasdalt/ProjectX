@@ -6,6 +6,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
 namespace ProjectX.Views;
+
+// удалить дабл-код
 public class ScreenshotCropper
 {
     public static string CropScreenshot(int startX, int startY, int width, int height)
@@ -29,7 +31,7 @@ public class ScreenshotCropper
         catch (Exception ex)
         {
             Console.WriteLine($"{ex.Message}");
-            return null;
+            return null!;
         }
     }
 }

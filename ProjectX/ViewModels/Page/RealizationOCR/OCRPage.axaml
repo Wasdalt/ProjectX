@@ -11,7 +11,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Styles>
         <!--  PointerOver State  -->
-
         <!-- <Style Selector="TextBlock.qq"> -->
         <!--     <Setter Property="Foreground" Value="Red" /> -->
         <!-- </Style> -->
@@ -28,6 +27,8 @@
         <!--     </Style> -->
         <!-- </Styles> -->
         <!--  Default State  -->
+
+
         <Style Selector="TextBox:pointerover">
             <Setter Property="Background" Value="Transparent" />
         </Style>
@@ -127,7 +128,6 @@
                 Foreground="#FFE8E8E8" />
         </StackPanel>
 
-        <!--  Элемент для отображения состояния загрузки  -->
         <TextBlock
             FontSize="24"
             Foreground="White"
@@ -136,7 +136,7 @@
             Grid.Row="1"
             HorizontalAlignment="Center"
             IsVisible="{Binding IsBusy}"
-            Text="Loading..."
+            Text="Загрузка..."
             VerticalAlignment="Center" />
     </Grid>
 </UserControl>

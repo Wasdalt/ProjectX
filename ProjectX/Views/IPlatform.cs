@@ -168,8 +168,8 @@ public class MacPlatform : PlatformBase
 {
     public override List<Window> CreateWindowsAsync()
     {
-        // Implement Mac-specific behavior
         throw new NotImplementedException();
+        // добавить код из файла 10
     }
 }
 
@@ -200,6 +200,12 @@ public static class PlatformFactory
                 ServiceLocator.Register<IScreenshotService<double>>(new GnomeWaylandScreenshotService());
                 return new LinuxPlatform();
             }
+            else if (Environment.GetEnvironmentVariable("DISPLAY") != null)
+            {
+                ServiceLocator.Register<IVirtualEnvActivator>(new LinuxVirtualEnvActivator());
+                ServiceLocator.Register<IScreenshotService<double>>(new GnomeWaylandScreenshotService());
+                return new LinuxPlatform();
+            }
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -211,6 +217,7 @@ public static class PlatformFactory
 
         throw new PlatformNotSupportedException("Unsupported platform or environment.");
     }
+
 
     private static bool IsGnome()
     {

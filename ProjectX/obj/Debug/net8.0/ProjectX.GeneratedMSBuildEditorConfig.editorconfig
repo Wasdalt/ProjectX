@@ -26,6 +26,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/RealizationSaveImage/SaveImagePage.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[/home/nubuck/RiderProjects/ProjectX/ProjectX/ViewModels/Page/Settings/SettingsPage.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [/home/nubuck/RiderProjects/ProjectX/ProjectX/Views/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

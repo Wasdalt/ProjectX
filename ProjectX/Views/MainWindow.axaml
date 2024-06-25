@@ -80,6 +80,9 @@
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
                             Spacing="5">
+                            <Button Command="{Binding ShowSettingsCommand}" Padding="4">
+                                <Image Source="/Assets/settings.png" />
+                            </Button>
                             <Button Command="{Binding ShowOCRCommand}" Padding="3">
                                 <Image Source="/Assets/text-recognising.png" />
                             </Button>

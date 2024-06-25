@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ProjectX.Models.ExitProgram;
+using ProjectX.ViewModels;
 
 namespace ProjectX.Views;
 
@@ -42,4 +43,5 @@ public static class ServiceLocator
     private static readonly Lazy<IShutdownService> _shutdownService = new(() => new ShutdownService());
 
     public static IShutdownService ShutdownService => _shutdownService.Value;
+    public static INavigationService NavigationService { get; set; } = null!;
 }
